@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29519.87
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Seabattle.Domain", "Seabattle.Domain\Seabattle.Domain.csproj", "{C3C1083C-2913-46A0-85F1-8F0365683CD1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Seabattle.Domain", "Seabattle.Domain\Seabattle.Domain.csproj", "{C3C1083C-2913-46A0-85F1-8F0365683CD1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Seabattle.Domain.Tests", "Seabattle.Domain.Tests\Seabattle.Domain.Tests.csproj", "{DF95ACD6-3249-4D7D-8571-F48CE4112C61}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Seabattle.Domain.Tests", "Seabattle.Domain.Tests\Seabattle.Domain.Tests.csproj", "{DF95ACD6-3249-4D7D-8571-F48CE4112C61}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Seabattle.Web", "Seabattle.Web\Seabattle.Web.csproj", "{DB0D584A-83D0-44D2-9C5B-EA8F49D88309}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{DF95ACD6-3249-4D7D-8571-F48CE4112C61}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DF95ACD6-3249-4D7D-8571-F48CE4112C61}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DF95ACD6-3249-4D7D-8571-F48CE4112C61}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DB0D584A-83D0-44D2-9C5B-EA8F49D88309}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DB0D584A-83D0-44D2-9C5B-EA8F49D88309}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DB0D584A-83D0-44D2-9C5B-EA8F49D88309}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DB0D584A-83D0-44D2-9C5B-EA8F49D88309}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
