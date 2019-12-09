@@ -21,17 +21,25 @@ namespace Seabattle.Domain
         public Player P2 { get; set; }
         
         public EnumGameSessionState State { get; private set; }
+
+        private IPlayerFactory playerFactory;
                 
-        public GameSession(string id)
+        public GameSession(string id, IPlayerFactory pf)
         {
             if (string.IsNullOrWhiteSpace(id))
             {
                 throw new ArgumentException("invalid game session id");
             }
 
+            if(pf == null)
+            {
+                throw new ArgumentNullException(nameof(pf));
+            }
+
             ID = id;
 
             State = EnumGameSessionState.Created;
+            playerFactory = pf;
         }
 
         /// <summary>
@@ -48,6 +56,8 @@ namespace Seabattle.Domain
         /// <param name="id"></param>
         public void Join(string id)
         {
+            const int BOARD_SIZE = 10;
+
             if (string.IsNullOrWhiteSpace(id))
             {
                 throw new ArgumentException("invalid player id");
@@ -60,7 +70,7 @@ namespace Seabattle.Domain
                         
             if (P1 == null)
             {
-                P1 = PrepareNewPlayer(id);
+                P1 = playerFactory.New(id, BOARD_SIZE);
             }
             else
             {
@@ -69,7 +79,7 @@ namespace Seabattle.Domain
                     throw new ArgumentException("A player cannot play with him/her self");
                 }
 
-                P2 = PrepareNewPlayer(id);
+                P2 = playerFactory.New(id, BOARD_SIZE);
                 State = EnumGameSessionState.WaitingPlayerConfirmation;
             }
         }
@@ -114,7 +124,7 @@ namespace Seabattle.Domain
         /// </summary>
         /// <param name="playerId"></param>
         /// <param name="pos"></param>
-        public void Shoot(string playerId, Coordinates pos)
+        public bool Shoot(string playerId, Coordinates pos)
         {
             if(State != EnumGameSessionState.Playing)
             {
@@ -133,7 +143,7 @@ namespace Seabattle.Domain
 
             if(Current.ID != playerId)
             {
-                throw new ArgumentException("invalid player turn");
+                throw new InvalidOperationException("invalid player turn");
             }
 
             var opponent = Current.ID == P1.ID ? P2 : P1;
@@ -150,41 +160,17 @@ namespace Seabattle.Domain
             {
                 State = EnumGameSessionState.Finished;
                 Winner = Current;
-
-                return;
-            }
+           }
 
             //Turn changes
             Current = opponent;
+
+            return target != null;
         }
 
         /// /////////////////////////////////////////////////////////
 
-        private Player PrepareNewPlayer(string id)
-        {
-            var p = new Player
-            {
-                ID = id,
-                Board = new Board(10),
-                Fleet = new List<Ship>
-                {
-                    new AircraftCarrier(GenerateShipID(), EnumShipOrientation.Vertical),
-                    new Battleship(GenerateShipID(), EnumShipOrientation.Vertical),
-                    new Cruiser(GenerateShipID(), EnumShipOrientation.Vertical),
-                    new Destroyer(GenerateShipID(), EnumShipOrientation.Horizontal),
-                    new Destroyer(GenerateShipID(), EnumShipOrientation.Horizontal),
-                    new Submarine(GenerateShipID()),
-                    new Submarine(GenerateShipID())
-                }
-            };
-                        
-            return p;
-        }
-
-        private string GenerateShipID()
-        {
-            return Guid.NewGuid().ToString();
-        }
+        
 
         private bool GetReady(Player p)
         {

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Seabattle.Domain.Ships;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using Xunit;
@@ -11,7 +12,11 @@ namespace Seabattle.Domain.Tests
 
         public GameSessionTests()
         {
-            GS = new GameSession("DUMMY_SESSION");
+            GS = new GameSession("DUMMY_SESSION", new TestPlayerFactory( new List<Ship>
+            {
+                new Submarine("SUB-1"),
+                new Submarine("SUB-2"),
+            }));
         }
 
         [Fact]
@@ -111,6 +116,6 @@ namespace Seabattle.Domain.Tests
             GS.Ready("p2");
                         
             Assert.Equal(EnumGameSessionState.Playing, GS.State);
-        }
+        }        
     }
 }

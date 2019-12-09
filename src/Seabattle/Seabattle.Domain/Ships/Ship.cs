@@ -7,6 +7,8 @@ namespace Seabattle.Domain.Ships
     /// <summary>
     /// Generic definition of a ship
     /// </summary>
+    /// 
+    [Serializable]
     public class Ship
     {
         public string ID { get; private set; }
