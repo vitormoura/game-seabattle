@@ -9,6 +9,8 @@ namespace Seabattle.Domain.Ships
     /// </summary>
     public class Ship
     {
+        public string ID { get; private set; }
+
         /// <summary>
         /// Size in units
         /// </summary>
@@ -24,13 +26,19 @@ namespace Seabattle.Domain.Ships
         /// </summary>
         /// <param name="size"></param>
         /// <param name="orientation"></param>
-        public Ship(int size, EnumShipOrientation orientation)
+        public Ship(string id, int size, EnumShipOrientation orientation)
         {
+            if(string.IsNullOrEmpty(id))
+            {
+                throw new ArgumentException("invalid ship id");
+            }
+
             if (size <= 0)
             {
                 throw new ArgumentException($"invalid ship size: {size}");
             }
 
+            ID = id;
             Size = size;
             Orientation = orientation;
         }        

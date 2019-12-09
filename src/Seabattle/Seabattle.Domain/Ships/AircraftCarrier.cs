@@ -6,7 +6,7 @@ namespace Seabattle.Domain.Ships
 {
     public class AircraftCarrier : Ship
     {
-        public AircraftCarrier(EnumShipOrientation orientation) : base(5, orientation)
+        public AircraftCarrier(string id, EnumShipOrientation orientation) : base(id, 5, orientation)
         {
         }
     }

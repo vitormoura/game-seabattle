@@ -18,9 +18,18 @@ namespace Seabattle.Domain.Tests
         }
 
         [Fact]
+        public void With_ShipWithoutID_WhenCreate_ThrowsException()
+        {
+            Assert.Throws<ArgumentException>(() =>
+            {
+                var s1 = new Ship(null, 2, EnumShipOrientation.Vertical);
+            });
+        }
+
+        [Fact]
         public void With_ValidShipCoordinates_WhenCallPosition_FleetUpdateOK()
         {
-            var s1 = new Ship(2, EnumShipOrientation.Vertical);
+            var s1 = new Ship("S1",2, EnumShipOrientation.Vertical);
 
             Board.Set(s1, new Coordinates { X = 0, Y = 0 });
 
@@ -54,7 +63,7 @@ namespace Seabattle.Domain.Tests
         [Fact]
         public void With_ShipCoordOffLimitsY_WhenCallPosition_ThrowsException()
         {
-            var s1 = new Ship(Board.Width, EnumShipOrientation.Vertical);
+            var s1 = new Ship("s1", Board.Width, EnumShipOrientation.Vertical);
 
             Assert.Throws<ArgumentException>(() =>
             {
@@ -65,7 +74,7 @@ namespace Seabattle.Domain.Tests
         [Fact]
         public void With_ShipCoordOffLimitsX_WhenCallPosition_ThrowsException()
         {
-            var s1 = new Ship(Board.Width, EnumShipOrientation.Horizontal);
+            var s1 = new Ship("s1", Board.Width, EnumShipOrientation.Horizontal);
 
             Assert.Throws<ArgumentException>(() =>
             {
@@ -76,15 +85,39 @@ namespace Seabattle.Domain.Tests
         [Fact]
         public void With_ShipCollide_WhenCallPosition_ThrowsException()
         {
-            var s1 = new Ship(5, EnumShipOrientation.Horizontal);
-            var s2 = new Ship(3, EnumShipOrientation.Vertical);
+            var s1 = new Ship("S1", 5, EnumShipOrientation.Vertical);
+            var s2 = new Ship("S2", 5, EnumShipOrientation.Horizontal);
 
-            Board.Set(s1, new Coordinates { X = 0, Y = 5 });
+            Board.Set(s1, new Coordinates { X = 5, Y = 0 });
 
             Assert.Throws<ArgumentException>(() =>
             {
-                Board.Set(s2, new Coordinates { X = 1, Y = 3 });
+                Board.Set(s2, new Coordinates { X = 4, Y = 2 });
             });
+        }
+
+        [Fact]
+        public void With_SameShipAlreadyAdded_WhenCallPosition_FleetDoesNotChange()
+        {
+            var s1 = new Ship("S1", 5, EnumShipOrientation.Vertical);
+            
+            Board.Set(s1, new Coordinates { X = 5, Y = 0 });
+
+            Assert.True(Board.Fleet.Count() == 1);
+
+            Board.Set(s1, new Coordinates { X = 7, Y = 2 });
+
+            var shipFromBoard = Board.Get(new Coordinates { X = 7, Y = 2 });
+
+            Assert.NotNull(shipFromBoard);
+            Assert.Equal(s1, shipFromBoard);
+        }
+
+        [Fact]
+        public void With_NoShipAdded_WhenCallGet_ReturnsNull()
+        {
+            var shipFromBoard = Board.Get(0, 0);
+            Assert.Null(shipFromBoard);
         }
     }
 }

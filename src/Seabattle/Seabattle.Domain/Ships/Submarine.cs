@@ -6,7 +6,7 @@ namespace Seabattle.Domain.Ships
 {
     public class Submarine : Ship
     {
-        public Submarine() : base(1, EnumShipOrientation.Horizontal)
+        public Submarine(string id) : base(id, 1, EnumShipOrientation.Horizontal)
         {
         }
     }
