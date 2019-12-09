@@ -1,10 +1,14 @@
 ﻿using Seabattle.Domain.Ships;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Seabattle.Domain
 {
+    /// <summary>
+    /// Game player
+    /// </summary>
     public class Player
     {
         /// <summary>
@@ -44,7 +48,7 @@ namespace Seabattle.Domain
                 throw new ArgumentException("invalid id");
             }
                         
-            Board.Set(Fleet.Find(x => x.ID == id), pos);
+            Board.Set(Fleet.FirstOrDefault(x => x.ID == id), pos);
         }
     }
 }

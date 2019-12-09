@@ -28,8 +28,13 @@ namespace Seabattle.Domain.Tests
             }));
 
             GS.Init();
+
+            //Waiting for players
+
             GS.Join(P1);
             GS.Join(P2);
+
+            //Setting up board
 
             GS.P1.Set(SUB_1, new Coordinates { X = 0, Y = 1 });
             GS.P1.Set(SUB_2, new Coordinates { X = 1, Y = 1 });
@@ -37,8 +42,12 @@ namespace Seabattle.Domain.Tests
             GS.P2.Set(SUB_1, new Coordinates { X = 0, Y = 4 });
             GS.P2.Set(SUB_2, new Coordinates { X = 1, Y = 4 });
 
+            //Ready for action
+
             GS.Ready(P1);
             GS.Ready(P2);
+
+            //PLAY!
 
         }
 

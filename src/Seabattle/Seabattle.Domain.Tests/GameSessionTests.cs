@@ -59,13 +59,13 @@ namespace Seabattle.Domain.Tests
         }
 
         [Fact]
-        public void With_BothPlayersJoined_WhenJoinIsCalledAgain_ExceptionIsThrown()
+        public void With_BothPlayersJoined_WhenNewPlayerJoin_ExceptionIsThrown()
         {
             GS.Init();
             GS.Join("player 1");
             GS.Join("player 2");
 
-            Assert.Throws<InvalidOperationException>(() =>
+            Assert.Throws<ArgumentException>(() =>
             {
                 GS.Join("player 3");
             });

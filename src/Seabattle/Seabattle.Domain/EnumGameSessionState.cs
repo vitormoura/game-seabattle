@@ -4,6 +4,9 @@ using System.Text;
 
 namespace Seabattle.Domain
 {
+    /// <summary>
+    /// Game session states
+    /// </summary>
     public enum EnumGameSessionState
     {
         Created,
