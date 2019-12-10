@@ -12,6 +12,24 @@
         "dist/browser/signalr.min.js",
         "dist/browser/signalr.min.js.map"
       ]
+    },
+    {
+      "provider": "unpkg",
+      "library": "vue@2.6.10/",
+      "destination": "wwwroot/js/vue/",
+      "files": [
+        "dist/vue.js",
+        "dist/vue.min.js"
+      ]
+    },
+    {
+      "provider": "unpkg",
+      "library": "purecss@1.0.1",
+      "destination": "wwwroot/css/purecss/",
+      "files": [
+        "build/pure-min.css",
+        "build/pure.css"
+      ]
     }
   ]
 }
