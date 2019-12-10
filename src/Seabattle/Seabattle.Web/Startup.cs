@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Seabattle.Domain;
 using Seabattle.Web.Hubs;
 
 namespace Seabattle.Web
@@ -19,6 +20,9 @@ namespace Seabattle.Web
         {
             services.AddRazorPages();
             services.AddSignalR();
+
+            services.AddTransient<IPlayerFactory, PlayerFactory>();
+            services.AddSingleton<GameSessionManager>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

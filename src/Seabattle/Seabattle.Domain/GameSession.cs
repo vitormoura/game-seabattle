@@ -187,6 +187,21 @@ namespace Seabattle.Domain
             return target != null;
         }
 
+        /// <summary>
+        /// Get a reference of the player identified by playerId
+        /// </summary>
+        /// <param name="playerId"></param>
+        /// <returns></returns>
+        public Player GetPlayer(string playerId)
+        {
+            if (string.IsNullOrWhiteSpace(playerId))
+            {
+                throw new ArgumentException("invalid player id");
+            }
+
+            return P1.ID == playerId ? P1 : (P2.ID == playerId ? P2 : null);
+        }
+
         /// /////////////////////////////////////////////////////////
 
         private bool GetReady(Player p)
@@ -219,14 +234,6 @@ namespace Seabattle.Domain
             return p;
         }
 
-        private Player GetPlayer(string playerId)
-        {
-            if (string.IsNullOrWhiteSpace(playerId))
-            {
-                throw new ArgumentException("invalid player id");
-            }
-
-            return P1.ID == playerId ? P1 : (P2.ID == playerId ? P2 : null);
-        }
+        
     }
 }

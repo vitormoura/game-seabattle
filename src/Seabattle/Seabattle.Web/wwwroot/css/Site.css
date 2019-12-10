@@ -1,2 +1,18 @@
 ﻿body {
 }
+
+.cnt-player-info {
+    text-align:center;
+}
+
+.tb-board td {
+    border:1px solid #CCC;
+    padding:2px;
+    width:30px;
+    text-align:center;
+    background-color:lightcyan;
+}
+
+.cnt-board {
+    text-align:center;
+}
