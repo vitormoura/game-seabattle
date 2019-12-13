@@ -11,12 +11,26 @@ namespace Seabattle.Domain.Ships
     [Serializable]
     public class Ship
     {
+        /// <summary>
+        /// Unique ship identifier
+        /// </summary>
         public string ID { get; private set; }
 
         /// <summary>
         /// Size in units
         /// </summary>
         public int Size { get; private set; }
+
+        /// <summary>
+        /// Type description
+        /// </summary>
+        public string Type
+        {
+            get
+            {
+                return this.GetType().Name;
+            }
+        }
 
         /// <summary>
         /// Display orientation

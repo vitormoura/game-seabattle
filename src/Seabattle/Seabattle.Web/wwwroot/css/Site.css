@@ -18,9 +18,14 @@
     }
 
     .tb-board td.active {
-        
     }
 
+.ls-ships {
+}
+
+    .ls-ships li.selected {
+        font-weight: bold;
+    }
 
 
 .cnt-board {

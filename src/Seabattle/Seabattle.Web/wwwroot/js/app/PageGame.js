@@ -9,10 +9,31 @@ var STATE_WAITING_YOUR_MOVE = 80;
 var STATE_WAITING_OTHER_MOVE = 81;
 var STATE_GAMEOVER = 99;
 
-var ORIENTATION_H = '0';
-var ORIENTATION_V = '1';
+var ORIENTATION_H = 0;
+var ORIENTATION_V = 1;
+
+var DEFAULT_MAX_HEALTH = 100;
 
 //////////////////////////////////////////
+
+function prepareGridData(width) {
+    var cells = [];
+
+    for (var i = 0; i < width; i++) {
+        var row = [];
+
+        for (var j = 0; j < width; j++) {
+            row.push({
+                X: j,
+                Y: i
+            });
+        }
+
+        cells.push(row);
+    }
+
+    return cells;
+}
 
 Vue.component('my-game-board', {
     props: {
@@ -23,6 +44,7 @@ Vue.component('my-game-board', {
         width: {
             required: true,
             type: Number
+
         },
         ships: {
             required: true,
@@ -32,39 +54,24 @@ Vue.component('my-game-board', {
             }
         }
     },
-    data: function () {
-
-        cells = [];
-
-        for (var i = 0; i < this.width; i++) {
-            var row = [];
-
-            for (var j = 0; j < this.width; j++) {
-                row.push({
-                    X: j,
-                    Y: i
-                });
-            }
-
-            cells.push(row);
+    watch: {
+        width: function () {
+            this.cells = prepareGridData(this.width);
         }
-
+    },
+    data: function () {
         return {
-            cells: cells
+            cells: null
         };
     },
 
-    created: function() {
+    created: function () {
         console.log('component created');
     },
 
     methods: {
-        boardCellClick: function (cell) {
-            console.log(cell);
-        },
 
         getCellStyle(c) {
-            
             var ship = this.findShipInCell(c);
 
             return {
@@ -73,20 +80,19 @@ Vue.component('my-game-board', {
             };
         },
 
-
         findShipInCell(cell) {
             return this.ships.find(s =>
-                (s.Orientation === ORIENTATION_H && cell.X >= s.X && cell.X < (s.X + s.Size) && s.Y === cell.Y) ||
-                (s.Orientation === ORIENTATION_V && cell.Y >= s.Y && cell.Y < (s.Y + s.Size) && s.X === cell.X)
+                (s.orientation === ORIENTATION_H && cell.X >= s.X && cell.X < (s.X + s.size) && s.Y === cell.Y) ||
+                (s.orientation === ORIENTATION_V && cell.Y >= s.Y && cell.Y < (s.Y + s.size) && s.X === cell.X)
             );
         }
     },
-    
+
     template: `
         <table class="tb-board">
             <caption>{{ships.length}}</caption>
             <tr v-for="row of cells">
-                <td v-for="c of row" v-on:click="boardCellClick(c)" v-bind:class="getCellStyle(c)">
+                <td v-for="c of row" v-on:click="$emit('cell-clicked', c)" v-bind:class="getCellStyle(c)">
                     &nbsp;
                 </td>
             </tr>
@@ -100,16 +106,18 @@ var page = new Vue({
         gameSession: {
             conn: null,
             id: null,
-            playerId: null,
+            playerId: '',
             state: STATE_NO_GAME
         },
         board1: {
-            size: 10,
-            ships:[]
+            size: 0,
+            availableShips: [],
+            selectedShip: null,
+            positioned: []
         },
         board2: {
-            size: 10,
-            ships: []
+            size: 0,
+            positioned: []
         }
     },
     computed: {
@@ -136,9 +144,10 @@ var page = new Vue({
         }
     },
     created: function () {
-        
+
     },
     methods: {
+
         handleGameSessionFound: function (session) {
             console.log('handleGameSessionFound', session);
 
@@ -147,24 +156,21 @@ var page = new Vue({
         },
 
         handleBeginBoardConfiguration: function (board) {
+            console.log('handleBeginBoardConfiguration', board);
+
+            this.board1.size = board.size;
+            this.board1.availableShips = board.fleet.map(function (s) {
+                return Object.assign({ X: 0, Y: 0, health: DEFAULT_MAX_HEALTH }, s);
+            });
+            this.board1.selectedShipId = null;
+            this.board1.positioned = [];
+
+            this.board2 = {
+                size: board.size,
+                positioned: []
+            };
 
             this.gameSession.state = STATE_PREPARING_BOARD;
-            
-            for (var i = 0; i < board.size; i++) {
-                for (var j = 0; i < board.size; j++) {
-                    this.board.cells.push({
-                        X: j,
-                        Y: i,
-                        Ship: null,
-                        State: null
-                    });
-                }   
-            }
-
-            this.board = {
-                size: board.size,
-                cells: cells
-            };
         },
 
         handleOpponentPlay: function () {
@@ -175,22 +181,39 @@ var page = new Vue({
 
         },
 
+        positionShip: function (cell) {
+            if (!this.board1.selectedShip) {
+                return;
+            }
+
+            var posShip = this.board1.selectedShip;
+            posShip.X = cell.X;
+            posShip.Y = cell.Y;
+
+            if (!this.board1.selectedShip.positioned) {
+                posShip.positioned = true;
+                this.board1.positioned.push(posShip);
+            }
+
+
+        },
+
+        selectShipForPosition: function (ship) {
+
+            if (this.board1.selectedShip === ship) {
+                ship = null;
+            }
+
+            this.board1.selectedShip = ship;
+        },
+
         findNewGameSession: function () {
 
             console.log('findNewGameSession');
 
             var self = this;
-
-            this.board1.ships.push({
-                id: '1234',
-                X: 5,
-                Y: 5,
-                Size: 3,
-                Orientation: ORIENTATION_V,
-                Health: 0
-            });
-
-            /*
+                        
+            ///*
             var conn = new signalR.HubConnectionBuilder().withUrl("/game-sessions").build();
 
             conn.on('GameSessionFound', this.handleGameSessionFound.bind(self));
@@ -210,7 +233,7 @@ var page = new Vue({
             });
 
             self.gameSession.conn = conn;
-            */
+            //*/
         }
     }
 });
