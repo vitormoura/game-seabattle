@@ -9,12 +9,29 @@ var STATE_WAITING_YOUR_MOVE = 80;
 var STATE_WAITING_OTHER_MOVE = 81;
 var STATE_GAMEOVER = 99;
 
+var ORIENTATION_H = '0';
+var ORIENTATION_V = '1';
+
 //////////////////////////////////////////
 
 Vue.component('my-game-board', {
-    props: [
-        'width'
-    ],
+    props: {
+        public: {
+            required: true,
+            type: Boolean
+        },
+        width: {
+            required: true,
+            type: Number
+        },
+        ships: {
+            required: true,
+            type: Array,
+            default: function () {
+                return [];
+            }
+        }
+    },
     data: function () {
 
         cells = [];
@@ -25,9 +42,7 @@ Vue.component('my-game-board', {
             for (var j = 0; j < this.width; j++) {
                 row.push({
                     X: j,
-                    Y: i,
-                    Ship: null,
-                    State: null
+                    Y: i
                 });
             }
 
@@ -38,11 +53,40 @@ Vue.component('my-game-board', {
             cells: cells
         };
     },
+
+    created: function() {
+        console.log('component created');
+    },
+
+    methods: {
+        boardCellClick: function (cell) {
+            console.log(cell);
+        },
+
+        getCellStyle(c) {
+            
+            var ship = this.findShipInCell(c);
+
+            return {
+                visible: this.public && !!ship,
+                active: true
+            };
+        },
+
+
+        findShipInCell(cell) {
+            return this.ships.find(s =>
+                (s.Orientation === ORIENTATION_H && cell.X >= s.X && cell.X < (s.X + s.Size) && s.Y === cell.Y) ||
+                (s.Orientation === ORIENTATION_V && cell.Y >= s.Y && cell.Y < (s.Y + s.Size) && s.X === cell.X)
+            );
+        }
+    },
     
     template: `
         <table class="tb-board">
+            <caption>{{ships.length}}</caption>
             <tr v-for="row of cells">
-                <td v-for="c of row">
+                <td v-for="c of row" v-on:click="boardCellClick(c)" v-bind:class="getCellStyle(c)">
                     &nbsp;
                 </td>
             </tr>
@@ -59,9 +103,13 @@ var page = new Vue({
             playerId: null,
             state: STATE_NO_GAME
         },
-        board: {
-            size: 0,
-            cells:[]
+        board1: {
+            size: 10,
+            ships:[]
+        },
+        board2: {
+            size: 10,
+            ships: []
         }
     },
     computed: {
@@ -128,10 +176,21 @@ var page = new Vue({
         },
 
         findNewGameSession: function () {
+
             console.log('findNewGameSession');
 
             var self = this;
 
+            this.board1.ships.push({
+                id: '1234',
+                X: 5,
+                Y: 5,
+                Size: 3,
+                Orientation: ORIENTATION_V,
+                Health: 0
+            });
+
+            /*
             var conn = new signalR.HubConnectionBuilder().withUrl("/game-sessions").build();
 
             conn.on('GameSessionFound', this.handleGameSessionFound.bind(self));
@@ -151,6 +210,7 @@ var page = new Vue({
             });
 
             self.gameSession.conn = conn;
+            */
         }
     }
 });

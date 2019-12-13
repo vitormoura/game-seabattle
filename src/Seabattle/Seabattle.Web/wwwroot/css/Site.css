@@ -2,17 +2,27 @@
 }
 
 .cnt-player-info {
-    text-align:center;
+    text-align: center;
 }
 
 .tb-board td {
-    border:1px solid #CCC;
-    padding:2px;
-    width:30px;
-    text-align:center;
-    background-color:lightcyan;
+    border: 1px solid #CCC;
+    padding: 2px;
+    width: 30px;
+    text-align: center;
+    background-color: lightcyan;
 }
 
+    .tb-board td.visible {
+        background-color: gray;
+    }
+
+    .tb-board td.active {
+        
+    }
+
+
+
 .cnt-board {
-    text-align:center;
+    text-align: center;
 }

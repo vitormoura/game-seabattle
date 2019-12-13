@@ -12,9 +12,7 @@
 
 <article id="cnt-main">
 
-    <my-game-board width="10"></my-game-board>
-    
-
+    <my-game-board v-bind:public="true" v-bind:width="board1.size" v-bind:ships="board1.ships"></my-game-board>
 
     <div class="pure-g" v-if="isInGame">
         <div class="pure-u-1-3 cnt-player-info">
