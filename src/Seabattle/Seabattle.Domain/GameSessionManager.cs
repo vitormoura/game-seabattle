@@ -48,5 +48,12 @@ namespace Seabattle.Domain
                 return Task.FromResult(session);
             }
         }
+
+        public Task<GameSession> Get(string sessionId)
+        {
+            var session = sessions.FirstOrDefault(x => x.ID == sessionId);
+                        
+            return Task.FromResult(session);
+        }
     }
 }

@@ -38,6 +38,17 @@ namespace Seabattle.Domain
         public Player P2 { get; set; }
 
         /// <summary>
+        /// Collection of session players
+        /// </summary>
+        public IEnumerable<Player> Players
+        {
+            get
+            {
+                return new List<Player> { P1, P2 };
+            }
+        }
+
+        /// <summary>
         /// State of current game session
         /// </summary>
         public EnumGameSessionState State { get; private set; }

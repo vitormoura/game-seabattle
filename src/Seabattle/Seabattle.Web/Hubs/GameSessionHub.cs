@@ -35,13 +35,40 @@ namespace Seabattle.Web.Hubs
             //GameSession is ready for action
             if(gs.State == EnumGameSessionState.WaitingPlayerConfirmation)
             {
-                var player = gs.GetPlayer(playerId);
-                                                                
-                await Clients.Group(gs.ID).SendAsync("BeginBoardConfiguration", new GameBoardState
+                foreach(var p in gs.Players)
                 {
-                    Size = player.Board.Width,
-                    Fleet = player.Fleet
+                    await Clients.Client(p.ID).SendAsync("BeginBoardConfiguration", new GameBoardState
+                    {
+                        Size = p.Board.Width,
+                        Fleet = p.Fleet
+                    });
+                }
+            }
+        }
+
+        public async Task SetPositionPlayerShip(string sessionId, string shipId, Coordinates pos)
+        {
+            var playerId = Context.ConnectionId;
+            var gs = await SessionManager.Get(sessionId);
+
+            if (gs == null)
+            {
+                throw new InvalidOperationException("unknown session");
+            }
+
+            try
+            {
+                gs.PositionPlayerShip(playerId, shipId, pos);
+
+                await Clients.Caller.SendAsync("ShipPositionConfirmed", new ShipPositionState
+                {
+                    Position = pos,
+                    ShipID = shipId
                 });
+            }
+            catch(Exception ex)
+            {
+                await Clients.Caller.SendAsync("GameError", ex.Message);
             }
         }
     }
