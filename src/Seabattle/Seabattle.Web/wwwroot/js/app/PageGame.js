@@ -91,7 +91,14 @@ Vue.component('my-game-board', {
     template: `
         <table class="tb-board">
             <caption>{{ships.length}}</caption>
-            <tr v-for="row of cells">
+            <tr>
+                <td>&nbsp;</td>
+                <td v-for="(c, index) in cells">
+                    {{index}}
+                </td>
+            </tr>
+            <tr v-for="(row,index) of cells">
+                <td>{{index}}</td>
                 <td v-for="c of row" v-on:click="$emit('cell-clicked', c)" v-bind:class="getCellStyle(c)">
                     &nbsp;
                 </td>
@@ -153,23 +160,26 @@ var page = new Vue({
             console.log('handleGameSessionFound', session);
 
             this.gameSession.id = session.id;
-            this.gameSession.playerId = session.player;
+            this.gameSession.playerId = session.playerID;
+
+            var mainBoard = this.board1;
+
+            mainBoard.size = session.boardSize;
+            mainBoard.availableShips = session.playerFleet.map(function (s) {
+                return Object.assign({ X: 0, Y: 0, health: DEFAULT_MAX_HEALTH }, s);
+            });
+            mainBoard.selectedShipId = null;
+            mainBoard.positioned = [];
+                        
+            this.board2 = {
+                size: mainBoard.size,
+                positioned: []
+            };
+
         },
 
         handleBeginBoardConfiguration: function (board) {
             console.log('handleBeginBoardConfiguration', board);
-
-            this.board1.size = board.size;
-            this.board1.availableShips = board.fleet.map(function (s) {
-                return Object.assign({ X: 0, Y: 0, health: DEFAULT_MAX_HEALTH }, s);
-            });
-            this.board1.selectedShipId = null;
-            this.board1.positioned = [];
-
-            this.board2 = {
-                size: board.size,
-                positioned: []
-            };
 
             this.gameSession.state = STATE_PREPARING_BOARD;
         },

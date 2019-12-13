@@ -25,24 +25,21 @@ namespace Seabattle.Web.Hubs
             //A game session is a group
             await Groups.AddToGroupAsync(Context.ConnectionId, gs.ID);
 
+            var player = gs.GetPlayer(playerId);
+
             //Sending to client his new GameSession
             await Clients.Caller.SendAsync("GameSessionFound", new GameSessionInfo
             {
                 ID = gs.ID,
-                Player = playerId
+                PlayerID = playerId,
+                BoardSize = player.Board.Width,
+                PlayerFleet = player.Fleet
             });
 
             //GameSession is ready for action
             if(gs.State == EnumGameSessionState.WaitingPlayerConfirmation)
             {
-                foreach(var p in gs.Players)
-                {
-                    await Clients.Client(p.ID).SendAsync("BeginBoardConfiguration", new GameBoardState
-                    {
-                        Size = p.Board.Width,
-                        Fleet = p.Fleet
-                    });
-                }
+                await Clients.Group(gs.ID).SendAsync("BeginBoardConfiguration");
             }
         }
 

@@ -24,13 +24,15 @@
 
             <my-game-board v-bind:public="true" v-bind:width="board1.size" v-bind:ships="board1.positioned" v-on:cell-clicked="positionShip($event)"></my-game-board>
 
-            <ul class="ls-ships">
-                <li v-for="s in board1.availableShips" v-on:click="selectShipForPosition(s)" v-bind:class="{ 'selected' : s ===  board1.selectedShip }">
-                    {{s.type}} <span v-if="s.positioned">({{s.X}},{{s.Y}})</span>
-                </li>
-            </ul>
+            <div v-if="isPreparingBoard">
+                <ul class="ls-ships">
+                    <li v-for="s in board1.availableShips" v-on:click="selectShipForPosition(s)" v-bind:class="{ 'selected' : s ===  board1.selectedShip }">
+                        {{s.type}} <span v-if="s.positioned">({{s.X}},{{s.Y}})</span>
+                    </li>
+                </ul>
 
-            <p>{{board1.selectedShipId}}</p>
+                <p>{{board1.selectedShipId}}</p>
+            </div>
 
         </div>
 
