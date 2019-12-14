@@ -20,6 +20,10 @@
     .tb-board td.active {
     }
 
+.disabled .tb-board td {
+    background-color: #CCC;
+}
+
 .ls-ships {
 }
 

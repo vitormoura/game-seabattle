@@ -114,7 +114,8 @@ var page = new Vue({
             conn: null,
             id: null,
             playerId: '',
-            state: STATE_NO_GAME
+            state: STATE_NO_GAME,
+            yourTurn: false
         },
         board1: {
             size: 0,
@@ -141,11 +142,17 @@ var page = new Vue({
         isPreparingBoard() {
             return this.gameSession.state === STATE_PREPARING_BOARD;
         },
+        isAllShipsPositioned() {
+            return this.isPreparingBoard && this.board1.positioned.length === this.board1.availableShips.length;
+        },
         isWaitingForYou() {
             return this.gameSession.state === STATE_WAITING_YOUR_MOVE;
         },
         isWaitingYourOpponent() {
             return this.gameSession.state === STATE_WAITING_OTHER_MOVE;
+        },
+        isPlaying() {
+            return this.isWaitingForYou || this.isWaitingYourOpponent;
         },
         isGameOver() {
             return this.gameSession.state === STATE_GAMEOVER;
@@ -155,6 +162,19 @@ var page = new Vue({
 
     },
     methods: {
+
+        selectShipForPosition: function (ship) {
+
+            if (this.board1.positioning) {
+                return;
+            }
+
+            if (this.board1.selectedShip === ship) {
+                ship = null;
+            }
+
+            this.board1.selectedShip = ship;
+        },
 
         handleGameSessionFound: function (session) {
             console.log('handleGameSessionFound', session);
@@ -170,7 +190,7 @@ var page = new Vue({
             });
             mainBoard.selectedShipId = null;
             mainBoard.positioned = [];
-                        
+
             this.board2 = {
                 size: mainBoard.size,
                 positioned: []
@@ -185,7 +205,7 @@ var page = new Vue({
         },
 
         handleShipPositionConfirmed: function (posState) {
-            
+
             console.log('handleShipPositionConfirmed', posState);
 
             var shipId = posState.shipID;
@@ -204,6 +224,14 @@ var page = new Vue({
             this.board1.positioning = false;
         },
 
+        handleGameplayStateChanged: function (gameStats) {
+            console.log(gameStats);
+
+            this.gameSession.state = gameStats.currentPlayerTurn === this.gameSession.playerId ? STATE_WAITING_YOUR_MOVE : STATE_WAITING_OTHER_MOVE;
+
+
+        },
+
         handleOpponentPlay: function () {
 
         },
@@ -213,9 +241,7 @@ var page = new Vue({
             this.board1.positioning = false;
         },
 
-        
-
-        positionShip: function (cell) {
+        sendPositionShip: function (cell) {
             var board = this.board1;
 
             if (!board.selectedShip || board.positioning) {
@@ -224,28 +250,37 @@ var page = new Vue({
 
             board.positioning = true;
 
-            this.gameSession.conn.invoke('SetPositionPlayerShip', this.gameSession.id, board.selectedShip.id, cell).then(function (result) {
-                console.log('result', result)
-            }).catch(function (err) {
-                console.error(err);
-                board.positioning = false;
-            });
+            this.gameSession.conn.invoke('SetPositionPlayerShip', { sessionID: this.gameSession.id, shipID: board.selectedShip.id, position: cell })
+                .then(function (result) {
+                    console.log('result', result);
+                }).catch(function (err) {
+                    console.error(err);
+                    board.positioning = false;
+                });
         },
 
-        selectShipForPosition: function (ship) {
+        sendSetPlayerReady: function () {
+            console.log('sendSetPlayerReady');
 
-            if (this.board1.positioning) {
+            //All ships are already positioned
+            if (this.board1.positioned.length !== this.board1.availableShips.length) {
                 return;
             }
 
-            if (this.board1.selectedShip === ship) {
-                ship = null;
-            }
-
-            this.board1.selectedShip = ship;
+            this.gameSession.conn.invoke('SetPlayerReady', { sessionID: this.gameSession.id, playerID: this.gameSession.playerId }).catch(function (err) {
+                console.error(err);
+            });
         },
 
-        findNewGameSession: function () {
+        sendShootOpponent: function (cell) {
+            console.log('sendShootOpponent');
+
+            this.gameSession.conn.invoke('ShootPlayerOpponent', { sessionID: this.gameSession.id, playerID: this.gameSession.playerId, position: cell }).catch(function (err) {
+                console.error(err);
+            });
+        },
+
+        sendFindNewGameSession: function () {
 
             console.log('findNewGameSession');
 
@@ -257,6 +292,8 @@ var page = new Vue({
             conn.on('GameSessionFound', this.handleGameSessionFound.bind(self));
             conn.on('BeginBoardConfiguration', this.handleBeginBoardConfiguration.bind(self));
             conn.on('ShipPositionConfirmed', this.handleShipPositionConfirmed.bind(self));
+            conn.on('StartGameplay', this.handleGameplayStateChanged.bind(self));
+            conn.on('GameplayStateChanged', this.handleGameplayStateChanged.bind(self));
             conn.on('OpponentPlay', this.handleOpponentPlay.bind(self));
             conn.on('GameError', this.handleGameError.bind(self));
 

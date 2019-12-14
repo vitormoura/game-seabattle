@@ -16,7 +16,7 @@ namespace Seabattle.Web.Hubs
         {
             SessionManager = sessionManager;
         }
-                
+
         public async Task FindNewGameSession()
         {
             var playerId = Context.ConnectionId;
@@ -37,36 +37,76 @@ namespace Seabattle.Web.Hubs
             });
 
             //GameSession is ready for action
-            if(gs.State == EnumGameSessionState.WaitingPlayerConfirmation)
+            if (gs.State == EnumGameSessionState.WaitingPlayerConfirmation)
             {
                 await Clients.Group(gs.ID).SendAsync("BeginBoardConfiguration");
             }
         }
 
-        public async Task SetPositionPlayerShip(string sessionId, string shipId, Coordinates pos)
+        public async Task SetPositionPlayerShip(SetPlayerShipPositionRequest req)
         {
+            var gs = await GetGameSession(req.SessionID);
             var playerId = Context.ConnectionId;
-            var gs = await SessionManager.Get(sessionId);
+
+            try
+            {
+                gs.PositionPlayerShip(playerId, req.ShipID, req.Position);
+
+                await Clients.Caller.SendAsync("ShipPositionConfirmed", new ShipPositionState
+                {
+                    Position = req.Position,
+                    ShipID = req.ShipID
+                });
+            }
+            catch (Exception ex)
+            {
+                await Clients.Caller.SendAsync("GameError", ex.Message);
+            }
+        }
+
+        public async Task SetPlayerReady(SetPlayerReadyRequest req)
+        {
+            var gs = await GetGameSession(req.SessionID);
+
+            //TODO: review synchronization problems
+            gs.Ready(req.PlayerID);
+
+            if (gs.State == EnumGameSessionState.Playing)
+            {
+                await Clients.Group(gs.ID).SendAsync("StartGameplay", new GameplayStateResponse
+                {
+                    CurrentPlayerTurn = gs.Current.ID
+                });
+            }
+        }
+
+        public async Task ShootPlayerOpponent(ShootPlayerOpponentRequest req)
+        {
+            var gs = await GetGameSession(req.SessionID);
+
+            gs.Shoot(req.PlayerID, req.Position);
+            
+            await Clients.Group(gs.ID).SendAsync("GameplayStateChanged", new GameplayStateResponse
+            {
+                CurrentPlayerTurn = gs.Current.ID,
+                PlayerScore = new Dictionary<string, int>
+                {
+                    { gs.P1.ID, gs.P1.Points },
+                    { gs.P2.ID, gs.P2.Points },
+                }
+            });
+        }
+
+        private async Task<GameSession> GetGameSession(string id)
+        {
+            var gs = await SessionManager.Get(id);
 
             if (gs == null)
             {
                 throw new InvalidOperationException("unknown session");
             }
 
-            try
-            {
-                gs.PositionPlayerShip(playerId, shipId, pos);
-
-                await Clients.Caller.SendAsync("ShipPositionConfirmed", new ShipPositionState
-                {
-                    Position = pos,
-                    ShipID = shipId
-                });
-            }
-            catch(Exception ex)
-            {
-                await Clients.Caller.SendAsync("GameError", ex.Message);
-            }
+            return gs;
         }
     }
 }

@@ -14,7 +14,7 @@
 
     <header>
         <h1>GAME SESSION</h1>
-        <h4>{{gameSession.id}}</h4>
+        <h4>{{gameSession.id}} ({{gameSession.state}})</h4>
     </header>
 
     <div class="pure-g" v-if="isInGame">
@@ -22,7 +22,7 @@
         <div class="pure-u-1-2">
             <h5>YOU ({{gameSession.playerId}})</h5>
 
-            <my-game-board v-bind:public="true" v-bind:width="board1.size" v-bind:ships="board1.positioned" v-on:cell-clicked="positionShip($event)"></my-game-board>
+            <my-game-board v-bind:public="true" v-bind:width="board1.size" v-bind:ships="board1.positioned" v-on:cell-clicked="sendPositionShip($event)"></my-game-board>
 
             <div v-if="isPreparingBoard">
                 <ul class="ls-ships">
@@ -32,6 +32,10 @@
                 </ul>
 
                 <p>{{board1.selectedShipId}}</p>
+
+                <p>
+                    <button v-bind:disabled="!isAllShipsPositioned" v-on:click="sendSetPlayerReady()">READY!</button>
+                </p>
             </div>
 
         </div>
@@ -39,12 +43,14 @@
         <div class="pure-u-1-2">
             <h5>OPPONENT</h5>
 
-            <my-game-board v-bind:public="false" v-bind:width="board2.size" v-bind:ships="board2.ships"></my-game-board>
+            <div v-bind:class="{ 'disabled' : !isWaitingForYou }">
+                <my-game-board v-bind:public="false" v-bind:width="board2.size" v-bind:ships="board2.ships" v-on:cell-clicked="sendShootOpponent($event)"></my-game-board>
+            </div>
         </div>
     </div>
     <div v-else>
         <p>Let's play?</p>
-        <button v-on:click="findNewGameSession()">NEW GAME</button>
+        <button v-on:click="sendFindNewGameSession()">NEW GAME</button>
     </div>
 
 
