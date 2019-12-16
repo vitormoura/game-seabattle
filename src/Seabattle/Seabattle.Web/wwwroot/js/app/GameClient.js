@@ -9,7 +9,10 @@ function prepareGameClient(options) {
     var SESSION_STATE_CANCELLED = 4;
     var SESSION_STATE_FINISHED = 5;
 
-    var connection = new signalR.HubConnectionBuilder().withUrl("/game-sessions").build();
+    var connection = new signalR.HubConnectionBuilder()
+        .withUrl("/game-sessions")
+        .configureLogging(signalR.LogLevel.Debug)
+        .build();
     var client = {
 
         session: {
@@ -17,6 +20,7 @@ function prepareGameClient(options) {
             state: SESSION_STATE_NO_GAME,
             playerId: null,
             playerReady: false,
+            currentPlayerId: null,
             points: {
             }
         },
@@ -51,6 +55,8 @@ function prepareGameClient(options) {
             if (!client.isInGameplay()) {
                 return Promise.reject('invalid game state');
             }
+
+            console.log('shootOpponent');
 
             return connection.invoke('ShootOpponent', {
                 sessionID: client.getSessionId(),
@@ -105,8 +111,17 @@ function prepareGameClient(options) {
         }
     });
 
+    connection.on('OpponentAttack', function (attackInfo) {
+        console.log('OnShootOpponent', attackInfo);
+
+        if (options.onOpponentAttack) {
+            options.onOpponentAttack(attackInfo);
+        }
+    });
+
     connection.on('GameSessionStateChanged', function (gpState) {
-        
+        console.log('OnGameSessionStateChanged', gpState);
+
         //Opponent found
         if (client.session.state === SESSION_STATE_WAITING_FOR_PLAYERS &&
             gpState.state === SESSION_STATE_WAITING_PLAYERS_CONFIRMATION) {
@@ -126,6 +141,7 @@ function prepareGameClient(options) {
         }
 
         client.session.state = gpState.state;
+        client.session.currentPlayerId = gpState.currentPlayerTurn;
 
         switch (gpState.state) {
 
@@ -138,7 +154,6 @@ function prepareGameClient(options) {
                 break;
 
             case SESSION_STATE_PLAYING:
-                client.session.currentPlayerId = gpState.currentPlayerTurn;
                 client.session.points = gpState.playerScore;
 
                 options.onPlaying && options.onPlaying(gpState);
@@ -151,27 +166,4 @@ function prepareGameClient(options) {
     });
 
     return client;
-
-    /*
-    conn.on('GameSessionFound', this.handleGameSessionFound.bind(self));
-    conn.on('BeginBoardConfiguration', this.handleBeginBoardConfiguration.bind(self));
-    conn.on('ShipPositionConfirmed', this.handleShipPositionConfirmed.bind(self));
-    conn.on('StartGameplay', this.handleGameplayStateChanged.bind(self));
-    conn.on('GameplayStateChanged', this.handleGameplayStateChanged.bind(self));
-    conn.on('OpponentPlay', this.handleOpponentPlay.bind(self));
-    conn.on('GameError', this.handleGameError.bind(self));
-    
-    conn.start().then(function () {
-        self.gameSession.state = STATE_FINDING_OPPONENT;
-
-        self.gameSession.conn.invoke('FindNewGameSession').catch(function (err) {
-            console.error(err);
-        });
-
-    }).catch(function (err) {
-        console.error(err);
-    });
-
-    self.gameSession.conn = conn;
-    */
 }

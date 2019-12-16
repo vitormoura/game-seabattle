@@ -213,6 +213,17 @@ namespace Seabattle.Domain
             return P1.ID == playerId ? P1 : (P2.ID == playerId ? P2 : null);
         }
 
+        /// <summary>
+        /// Get a reference of the opponent player
+        /// </summary>
+        /// <param name="playerId"></param>
+        /// <returns></returns>
+        public Player GetPlayerOpponent(string playerId)
+        {
+            var player = GetPlayer(playerId);
+            return player == P1 ? P2 : P1;
+        }
+
         /// /////////////////////////////////////////////////////////
 
         private bool GetReady(Player p)

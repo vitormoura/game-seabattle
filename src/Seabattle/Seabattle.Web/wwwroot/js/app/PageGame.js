@@ -24,6 +24,7 @@ var page = new Vue({
         }
     },
     computed: {
+
         isInGameSession() {
             return this.gameClient && !this.gameClient.isNotInGame();
         },
@@ -37,10 +38,10 @@ var page = new Vue({
             return this.isPreparingBoard && this.mainBoard.positioned.length === this.mainBoard.availableShips.length;
         },
         isPlaying() {
-            return this.gameClient.isInGameplay;
+            return this.gameClient.isInGameplay();
         },
         isMyTurn() {
-            return this.gameClient.isWaitingYourPlay;
+            return this.gameClient.isWaitingYourPlay();
         }
        
     },
@@ -76,7 +77,7 @@ var page = new Vue({
             board.positioning = true;
 
             this.gameClient.positionShip(board.selectedShip.id, cell).then(function (posState) {
-                console.log('ship positioned', posState);
+                
                 var shipId = posState.shipID;
                 var pos = posState.position;
 
@@ -104,7 +105,8 @@ var page = new Vue({
         },
 
         shootOpponent: function (cell) {
-            if (this.isInGameplay && this.isMyTurn) {
+            
+            if (this.isPlaying && this.isMyTurn) {
                 this.gameClient.shootOpponent(cell);
             }
         },
@@ -126,7 +128,8 @@ var page = new Vue({
 
                     self.opponentBoard = {
                         size: gsInfo.boardSize,
-                        positioned: []
+                        positioned: [],
+                        ships: []
                     };
                 },
 
@@ -136,6 +139,14 @@ var page = new Vue({
 
                 onOpponentFound: function () {
 
+                },
+
+                onOpponentAttack: function (attackInfo) {
+                    self.opponentBoard.positioned.push({
+                        X: attackInfo.position.x,
+                        Y: attackInfo.position.y,
+                        orientation: ORIENTATION_H
+                    });
                 },
 
                 onWaitingPlayerConfirmation: function () {

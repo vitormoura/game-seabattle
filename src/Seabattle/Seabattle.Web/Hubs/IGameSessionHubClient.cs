@@ -1,4 +1,5 @@
-﻿using Seabattle.Web.Model;
+﻿using Seabattle.Domain;
+using Seabattle.Web.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,6 +13,8 @@ namespace Seabattle.Web.Hubs
     public interface IGameSessionHubClient
     {
         Task GameSessionFound(GameSessionInfo resp);
+
+        Task OpponentAttack(ShipAttackInfo attack);
 
         Task GameSessionStateChanged(GameplayStateResponse resp);        
     }

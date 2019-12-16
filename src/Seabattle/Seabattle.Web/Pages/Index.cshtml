@@ -26,7 +26,7 @@
         <div v-else>
 
             <div class="pure-u-1-2">
-                <h5>YOUR BOARD</h5>
+                <h5>YOUR BOARD ({{isMyTurn}})</h5>
 
                 <div>
                     <my-game-board v-bind:public="true"
@@ -50,11 +50,16 @@
 
             </div>
 
-            <div class="pure-u-1-2">
+            <div class="pure-u-1-2" v-if="isPlaying">
+                
                 <h5>OPPONENT's BOARD</h5>
 
-                <div>
-                    <my-game-board v-bind:public="false" v-bind:width="opponentBoard.size" v-bind:ships="opponentBoard.ships" v-on:cell-clicked="shootOpponent($event)"></my-game-board>
+                <div v-bind:class="{ disabled: !isMyTurn }" >
+                    <my-game-board v-bind:public="false" 
+                                   v-bind:width="opponentBoard.size" 
+                                   v-bind:ships="opponentBoard.positioned" 
+                                   v-on:cell-clicked="shootOpponent($event)">
+                    </my-game-board>
                 </div>
             </div>
 
