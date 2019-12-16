@@ -9,7 +9,7 @@ namespace Seabattle.Web.Model
     public class ShipAttackInfo
     {
         public Coordinates Position { get; set; }
-        
-        public bool Hit { get; set; }
+                        
+        public string TargetID { get; set; }
     }
 }

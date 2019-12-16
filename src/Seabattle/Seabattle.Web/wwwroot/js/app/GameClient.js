@@ -13,6 +13,7 @@ function prepareGameClient(options) {
         .withUrl("/game-sessions")
         .configureLogging(signalR.LogLevel.Debug)
         .build();
+
     var client = {
 
         session: {
@@ -55,9 +56,7 @@ function prepareGameClient(options) {
             if (!client.isInGameplay()) {
                 return Promise.reject('invalid game state');
             }
-
-            console.log('shootOpponent');
-
+                        
             return connection.invoke('ShootOpponent', {
                 sessionID: client.getSessionId(),
                 position: pos
@@ -100,7 +99,7 @@ function prepareGameClient(options) {
     };
 
     connection.on('GameSessionFound', function (gsInfo) {
-        console.log('game session found', gsInfo);
+        console.log('OnGameSessionFound', gsInfo);
 
         client.session.id = gsInfo.id;
         client.session.state = gsInfo.state;
@@ -112,7 +111,7 @@ function prepareGameClient(options) {
     });
 
     connection.on('OpponentAttack', function (attackInfo) {
-        console.log('OnShootOpponent', attackInfo);
+        console.log('OnOpponentAttack', attackInfo);
 
         if (options.onOpponentAttack) {
             options.onOpponentAttack(attackInfo);

@@ -15,12 +15,14 @@ var page = new Vue({
             size: 0,
             availableShips: [],
             selectedShip: null,
-            positioned: [],
-            positioning: false
+            ships: [],
+            positioning: false,
+            shots: []
         },
         opponentBoard: {
             size: 0,
-            positioned: []
+            ships: [],
+            shots: []
         }
     },
     computed: {
@@ -35,13 +37,17 @@ var page = new Vue({
             return this.gameClient.isSettingGameBoard();
         },
         isAllShipsPositioned() {
-            return this.isPreparingBoard && this.mainBoard.positioned.length === this.mainBoard.availableShips.length;
+            return this.isPreparingBoard && this.mainBoard.ships.length === this.mainBoard.availableShips.length;
         },
         isPlaying() {
             return this.gameClient.isInGameplay();
         },
         isMyTurn() {
             return this.gameClient.isWaitingYourPlay();
+        },
+
+        score() {
+            return this.gameClient.getCurrentScore();
         }
        
     },
@@ -88,7 +94,7 @@ var page = new Vue({
                 if (!selectedShip.positioned) {
                     selectedShip.positioned = true;
 
-                    board.positioned.push(selectedShip);
+                    board.ships.push(selectedShip);
                 }
 
                 board.positioning = false;
@@ -96,8 +102,7 @@ var page = new Vue({
         },
 
         playerIsReady: function () {
-            //All ships are already positioned
-            if (this.mainBoard.positioned.length !== this.mainBoard.availableShips.length) {
+            if (!this.isAllShipsPositioned) {
                 return;
             }
                         
@@ -105,9 +110,12 @@ var page = new Vue({
         },
 
         shootOpponent: function (cell) {
-            
+            var self = this;
+
             if (this.isPlaying && this.isMyTurn) {
-                this.gameClient.shootOpponent(cell);
+                self.gameClient.shootOpponent(cell).then(function () {
+                    self.opponentBoard.shots.push(cell);
+                });
             }
         },
 
@@ -123,13 +131,19 @@ var page = new Vue({
                     self.mainBoard.selectedShipId = null;
                     self.mainBoard.positioned = [];
                     self.mainBoard.availableShips = gsInfo.playerFleet.map(function (s) {
-                        return Object.assign({ X: 0, Y: 0, health: DEFAULT_MAX_HEALTH }, s);
+                        return Object.assign({
+                            X: 0,
+                            Y: 0,
+                            health: DEFAULT_MAX_HEALTH,
+                            destroyed: false
+                        }, s);
                     });
 
                     self.opponentBoard = {
                         size: gsInfo.boardSize,
                         positioned: [],
-                        ships: []
+                        ships: [],
+                        shots: []
                     };
                 },
 
@@ -142,11 +156,22 @@ var page = new Vue({
                 },
 
                 onOpponentAttack: function (attackInfo) {
-                    self.opponentBoard.positioned.push({
+                    console.log('page onOpponentAttack', attackInfo);
+
+                    self.mainBoard.shots.push({
                         X: attackInfo.position.x,
-                        Y: attackInfo.position.y,
-                        orientation: ORIENTATION_H
+                        Y: attackInfo.position.y
                     });
+
+                    if (attackInfo.targetID) {
+                        var ship = self.mainBoard.availableShips.find(function (s) {
+                            return s.id === attackInfo.targetID;
+                        });
+
+                        if (ship) {
+                            ship.destroyed = true;
+                        }
+                    }
                 },
 
                 onWaitingPlayerConfirmation: function () {

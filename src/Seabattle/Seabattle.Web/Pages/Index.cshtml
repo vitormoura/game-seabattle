@@ -17,7 +17,7 @@
         <h1>BATTLE</h1>
     </header>
 
-    <div class="pure-g" v-if="isInGameSession">
+    <div v-if="isInGameSession" class="pure-g">
 
         <div v-if="isFindingOpponent" class="pure-u-1-1">
             <p>Finding opponent...</p>
@@ -26,15 +26,16 @@
         <div v-else>
 
             <div class="pure-u-1-2">
-                <h5>YOUR BOARD ({{isMyTurn}})</h5>
 
-                <div>
-                    <my-game-board v-bind:public="true"
-                                   v-bind:width="mainBoard.size"
-                                   v-bind:ships="mainBoard.positioned"
-                                   v-on:cell-clicked="setShipPosition($event)">
-                    </my-game-board>
-                </div>
+                <h5>YOUR BOARD ({{score}} pts)</h5>
+                
+                <my-game-board v-bind:public="true"
+                               v-bind:width="mainBoard.size"
+                               v-bind:ships="mainBoard.ships"
+                               v-bind:shots="mainBoard.shots"
+                               v-on:cell-clicked="setShipPosition($event)">
+                </my-game-board>
+
 
                 <div v-if="isPreparingBoard">
                     <ul class="ls-ships">
@@ -51,13 +52,14 @@
             </div>
 
             <div class="pure-u-1-2" v-if="isPlaying">
-                
+
                 <h5>OPPONENT's BOARD</h5>
 
-                <div v-bind:class="{ disabled: !isMyTurn }" >
-                    <my-game-board v-bind:public="false" 
-                                   v-bind:width="opponentBoard.size" 
-                                   v-bind:ships="opponentBoard.positioned" 
+                <div v-bind:class="{ disabled: !isMyTurn }">
+                    <my-game-board v-bind:public="true"
+                                   v-bind:width="opponentBoard.size"
+                                   v-bind:ships="opponentBoard.ships"
+                                   v-bind:shots="opponentBoard.shots"
                                    v-on:cell-clicked="shootOpponent($event)">
                     </my-game-board>
                 </div>

@@ -74,11 +74,11 @@ namespace Seabattle.Web.Hubs
             var gs = await GetGameSession(req.SessionID);
             var opponent = gs.GetPlayerOpponent(playerId);
             
-            var isHit = gs.Shoot(playerId, req.Position);
+            var hittedShip = gs.Shoot(playerId, req.Position);
 
             await Clients.Client(opponent.ID).OpponentAttack(new ShipAttackInfo { 
                 Position = req.Position, 
-                Hit = isHit 
+                TargetID = hittedShip?.ID
             });
 
             await Clients.Group(gs.ID).GameSessionStateChanged(GetGameplayState(gs));

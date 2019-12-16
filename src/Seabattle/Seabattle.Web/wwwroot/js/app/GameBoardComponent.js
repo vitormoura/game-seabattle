@@ -3,23 +3,26 @@
 var ORIENTATION_H = 0;
 var ORIENTATION_V = 1;
 
-function prepareGridData(width) {
+function prepareGrid(width, prepareValue) {
     var cells = [];
 
     for (var i = 0; i < width; i++) {
         var row = [];
 
         for (var j = 0; j < width; j++) {
-            row.push({
-                X: j,
-                Y: i
-            });
+            row.push(prepareValue(j, i));
         }
 
         cells.push(row);
     }
 
     return cells;
+}
+
+function prepareGridCells(width) {
+    return prepareGrid(width, function (x, y) {
+        return { X: x, Y: y };
+    });
 }
 
 Vue.component('my-game-board', {
@@ -39,16 +42,25 @@ Vue.component('my-game-board', {
             default: function () {
                 return [];
             }
+        },
+        shots: {
+            required: true,
+            type: Array,
+            default: function () {
+                return [];
+            }
         }
     },
+
     watch: {
         width: function () {
-            this.cells = prepareGridData(this.width);
+            this.cells = prepareGridCells(this.width);
         }
     },
+
     data: function () {
         return {
-            cells: prepareGridData(this.width)
+            cells: prepareGridCells(this.width)
         };
     },
 
@@ -60,9 +72,13 @@ Vue.component('my-game-board', {
 
         getCellStyle(c) {
             var ship = this.findShipInCell(c);
+            var hasShip = !!ship;
+            var hasShot = !!this.shots.find(s => s.X === c.X && s.Y === c.Y);
 
             return {
-                visible: this.public && !!ship,
+                visible: hasShip || hasShot,
+                shotted: hasShot,
+                hitted: hasShip && ship.destroyed,
                 active: true
             };
         },

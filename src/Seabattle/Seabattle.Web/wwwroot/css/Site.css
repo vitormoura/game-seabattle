@@ -20,6 +20,14 @@
     .tb-board td.active {
     }
 
+    .tb-board td.shotted {
+        background-color: orange;
+    }
+
+    .tb-board td.hitted {
+        background-color: red;
+    }
+
 .disabled .tb-board td {
     background-color: #CCC;
 }

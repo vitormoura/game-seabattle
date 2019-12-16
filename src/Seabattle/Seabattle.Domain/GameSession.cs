@@ -157,7 +157,7 @@ namespace Seabattle.Domain
         /// </summary>
         /// <param name="playerId"></param>
         /// <param name="pos"></param>
-        public bool Shoot(string playerId, Coordinates pos)
+        public Ship Shoot(string playerId, Coordinates pos)
         {
             CheckCurrentState(EnumGameSessionState.Playing, "invalid game state");
             
@@ -195,7 +195,7 @@ namespace Seabattle.Domain
             //Turn changes
             Current = opponent;
 
-            return target != null;
+            return target;
         }
 
         /// <summary>

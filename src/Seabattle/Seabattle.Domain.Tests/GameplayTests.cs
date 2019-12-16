@@ -72,13 +72,13 @@ namespace Seabattle.Domain.Tests
         [Fact]
         public void With_InitialBoardState_WhenPlayersPlay_StateChangeAccordingly()
         {
-            Assert.True(GS.Shoot(P1, new Coordinates { X = 0, Y = 4 }));
+            Assert.NotNull(GS.Shoot(P1, new Coordinates { X = 0, Y = 4 }));
             Assert.Equal(1, GS.P1.Points);
             Assert.Equal(EnumGameSessionState.Playing, GS.State);
 
-            Assert.False(GS.Shoot(P2, new Coordinates { X = 5, Y = 5 }));
+            Assert.Null(GS.Shoot(P2, new Coordinates { X = 5, Y = 5 }));
 
-            Assert.True(GS.Shoot(P1, new Coordinates { X = 1, Y = 4 }));
+            Assert.NotNull(GS.Shoot(P1, new Coordinates { X = 1, Y = 4 }));
             Assert.Equal(2, GS.P1.Points);
             Assert.Equal(EnumGameSessionState.Finished, GS.State);
         }
