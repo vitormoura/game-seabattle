@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Seabattle.Web.Hubs
 {
-    public class GameSessionHub : Hub
+    public class GameSessionHub : Hub<IGameSessionHubClient>
     {
         public GameSessionManager SessionManager { get; }
 
@@ -28,7 +28,7 @@ namespace Seabattle.Web.Hubs
             var player = gs.GetPlayer(playerId);
 
             //Sending to client his new GameSession
-            await Clients.Caller.SendAsync("GameSessionFound", new GameSessionInfo
+            await Clients.Caller.GameSessionFound(new GameSessionInfo
             {
                 ID = gs.ID,
                 PlayerID = playerId,
@@ -36,65 +36,46 @@ namespace Seabattle.Web.Hubs
                 PlayerFleet = player.Fleet
             });
 
-            //GameSession is ready for action
-            if (gs.State == EnumGameSessionState.WaitingPlayerConfirmation)
+            await Clients.Group(gs.ID).GameSessionStateChanged(new GameplayStateResponse
             {
-                await Clients.Group(gs.ID).SendAsync("BeginBoardConfiguration");
-            }
+                State = gs.State,
+                CurrentPlayerTurn = null
+            });
         }
 
-        public async Task SetPositionPlayerShip(SetPlayerShipPositionRequest req)
+        public async Task<ShipPositionState> PositionShip(SetPlayerShipPositionRequest req)
         {
             var gs = await GetGameSession(req.SessionID);
             var playerId = Context.ConnectionId;
 
-            try
-            {
-                gs.PositionPlayerShip(playerId, req.ShipID, req.Position);
+            gs.PositionPlayerShip(playerId, req.ShipID, req.Position);
 
-                await Clients.Caller.SendAsync("ShipPositionConfirmed", new ShipPositionState
-                {
-                    Position = req.Position,
-                    ShipID = req.ShipID
-                });
-            }
-            catch (Exception ex)
+            return new ShipPositionState
             {
-                await Clients.Caller.SendAsync("GameError", ex.Message);
-            }
+                Position = req.Position,
+                ShipID = req.ShipID
+            };
         }
 
-        public async Task SetPlayerReady(SetPlayerReadyRequest req)
+        public async Task SetPlayerIsReady(SetPlayerReadyRequest req)
         {
+            var playerId = Context.ConnectionId;
             var gs = await GetGameSession(req.SessionID);
 
             //TODO: review synchronization problems
-            gs.Ready(req.PlayerID);
-
-            if (gs.State == EnumGameSessionState.Playing)
-            {
-                await Clients.Group(gs.ID).SendAsync("StartGameplay", new GameplayStateResponse
-                {
-                    CurrentPlayerTurn = gs.Current.ID
-                });
-            }
+            gs.Ready(playerId);
+            
+            await Clients.Group(gs.ID).GameSessionStateChanged(GetGameplayState(gs));
         }
 
-        public async Task ShootPlayerOpponent(ShootPlayerOpponentRequest req)
+        public async Task ShootOpponent(ShootPlayerOpponentRequest req)
         {
+            var playerId = Context.ConnectionId;
             var gs = await GetGameSession(req.SessionID);
 
-            gs.Shoot(req.PlayerID, req.Position);
-            
-            await Clients.Group(gs.ID).SendAsync("GameplayStateChanged", new GameplayStateResponse
-            {
-                CurrentPlayerTurn = gs.Current.ID,
-                PlayerScore = new Dictionary<string, int>
-                {
-                    { gs.P1.ID, gs.P1.Points },
-                    { gs.P2.ID, gs.P2.Points },
-                }
-            });
+            gs.Shoot(playerId, req.Position);
+
+            await Clients.Group(gs.ID).GameSessionStateChanged(GetGameplayState(gs));
         }
 
         private async Task<GameSession> GetGameSession(string id)
@@ -107,6 +88,19 @@ namespace Seabattle.Web.Hubs
             }
 
             return gs;
+        }
+        private GameplayStateResponse GetGameplayState(GameSession gs)
+        {
+            return new GameplayStateResponse
+            {
+                CurrentPlayerTurn = gs.Current?.ID,
+                State = gs.State,
+                PlayerScore = new Dictionary<string, int>
+                {
+                    { gs.P1.ID, gs.P1.Points },
+                    { gs.P2.ID, gs.P2.Points },
+                }
+            };
         }
     }
 }

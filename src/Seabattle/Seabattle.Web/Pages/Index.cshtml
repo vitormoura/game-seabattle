@@ -6,51 +6,65 @@
 }
 
 @section scripts {
+    <script src="~/js/app/GameClient.js"></script>
+    <script src="~/js/app/GameBoardComponent.js"></script>
     <script src="~/js/app/PageGame.js"></script>
 }
-
 
 <article id="cnt-main">
 
     <header>
-        <h1>GAME SESSION</h1>
-        <h4>{{gameSession.id}} ({{gameSession.state}})</h4>
+        <h1>BATTLE</h1>
     </header>
 
-    <div class="pure-g" v-if="isInGame">
+    <div class="pure-g" v-if="isInGameSession">
 
-        <div class="pure-u-1-2">
-            <h5>YOU ({{gameSession.playerId}})</h5>
+        <div v-if="isFindingOpponent" class="pure-u-1-1">
+            <p>Finding opponent...</p>
+        </div>
 
-            <my-game-board v-bind:public="true" v-bind:width="board1.size" v-bind:ships="board1.positioned" v-on:cell-clicked="sendPositionShip($event)"></my-game-board>
+        <div v-else>
 
-            <div v-if="isPreparingBoard">
-                <ul class="ls-ships">
-                    <li v-for="s in board1.availableShips" v-on:click="selectShipForPosition(s)" v-bind:class="{ 'selected' : s ===  board1.selectedShip }">
-                        {{s.type}} <span v-if="s.positioned">({{s.X}},{{s.Y}})</span>
-                    </li>
-                </ul>
+            <div class="pure-u-1-2">
+                <h5>YOUR BOARD</h5>
 
-                <p>{{board1.selectedShipId}}</p>
+                <div>
+                    <my-game-board v-bind:public="true"
+                                   v-bind:width="mainBoard.size"
+                                   v-bind:ships="mainBoard.positioned"
+                                   v-on:cell-clicked="setShipPosition($event)">
+                    </my-game-board>
+                </div>
 
-                <p>
-                    <button v-bind:disabled="!isAllShipsPositioned" v-on:click="sendSetPlayerReady()">READY!</button>
-                </p>
+                <div v-if="isPreparingBoard">
+                    <ul class="ls-ships">
+                        <li v-for="s in mainBoard.availableShips" v-on:click="selectShipForPosition(s)" v-bind:class="{ 'selected' : s ===  mainBoard.selectedShip }">
+                            {{s.type}} <span v-if="s.positioned">({{s.X}},{{s.Y}})</span>
+                        </li>
+                    </ul>
+
+                    <p>
+                        <button v-if="isAllShipsPositioned" v-on:click="playerIsReady()">READY!</button>
+                    </p>
+                </div>
+
+            </div>
+
+            <div class="pure-u-1-2">
+                <h5>OPPONENT's BOARD</h5>
+
+                <div>
+                    <my-game-board v-bind:public="false" v-bind:width="opponentBoard.size" v-bind:ships="opponentBoard.ships" v-on:cell-clicked="shootOpponent($event)"></my-game-board>
+                </div>
             </div>
 
         </div>
 
-        <div class="pure-u-1-2">
-            <h5>OPPONENT</h5>
-
-            <div v-bind:class="{ 'disabled' : !isWaitingForYou }">
-                <my-game-board v-bind:public="false" v-bind:width="board2.size" v-bind:ships="board2.ships" v-on:cell-clicked="sendShootOpponent($event)"></my-game-board>
-            </div>
-        </div>
     </div>
+
     <div v-else>
         <p>Let's play?</p>
-        <button v-on:click="sendFindNewGameSession()">NEW GAME</button>
+        <button v-on:click="tryFindNewGameSession()">NEW GAME</button>
     </div>
 
 
