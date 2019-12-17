@@ -64,24 +64,39 @@ namespace Seabattle.Web.Hubs
 
             //TODO: review synchronization problems
             gs.Ready(playerId);
-            
+
             await Clients.Group(gs.ID).GameSessionStateChanged(GetGameplayState(gs));
         }
 
-        public async Task ShootOpponent(ShootPlayerOpponentRequest req)
+        public async Task<ShipAttackInfo> ShootOpponent(ShootPlayerOpponentRequest req)
         {
             var playerId = Context.ConnectionId;
             var gs = await GetGameSession(req.SessionID);
             var opponent = gs.GetPlayerOpponent(playerId);
-            
-            var hittedShip = gs.Shoot(playerId, req.Position);
 
-            await Clients.Client(opponent.ID).OpponentAttack(new ShipAttackInfo { 
-                Position = req.Position, 
-                TargetID = hittedShip?.ID
-            });
+            var target = gs.Shoot(playerId, req.Position);
 
-            await Clients.Group(gs.ID).GameSessionStateChanged(GetGameplayState(gs));
+            var result = new ShipAttackInfo
+            {
+                Position = req.Position,
+                Success = target != null,
+                Target = target
+            };
+
+            await Clients.Client(opponent.ID).OpponentAttack(result);
+                        
+            if (gs.State == EnumGameSessionState.Finished)
+            {
+                await SessionManager.Remove(gs.ID);
+
+                await Clients.Group(gs.ID).GameOver(GetGameplayState(gs));
+            }
+            else
+            {
+                await Clients.Group(gs.ID).GameOver(GetGameplayState(gs));
+            }
+
+            return result;
         }
 
         private async Task<GameSession> GetGameSession(string id)
@@ -101,6 +116,7 @@ namespace Seabattle.Web.Hubs
             {
                 CurrentPlayerTurn = gs.Current?.ID,
                 State = gs.State,
+                Winner = gs.State == EnumGameSessionState.Finished ? gs.Winner.ID : null,
                 PlayerScore = new Dictionary<string, int>
                 {
                     { gs.P1.ID, gs.P1.Points },

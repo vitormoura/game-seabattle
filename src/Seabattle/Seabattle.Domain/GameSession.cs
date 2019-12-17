@@ -157,7 +157,7 @@ namespace Seabattle.Domain
         /// </summary>
         /// <param name="playerId"></param>
         /// <param name="pos"></param>
-        public Ship Shoot(string playerId, Coordinates pos)
+        public BoardShip Shoot(string playerId, Coordinates pos)
         {
             CheckCurrentState(EnumGameSessionState.Playing, "invalid game state");
             
@@ -178,9 +178,12 @@ namespace Seabattle.Domain
 
             var opponent = Current.ID == P1.ID ? P2 : P1;
             var target = opponent.Board.Get(pos);
+            var result = null as BoardShip;
 
             if (target != null)
             {
+                result = opponent.Board.FindShipById(target.ID);
+
                 Current.Points++;
                 opponent.Board.Remove(target);
             }
@@ -195,7 +198,7 @@ namespace Seabattle.Domain
             //Turn changes
             Current = opponent;
 
-            return target;
+            return result;
         }
 
         /// <summary>

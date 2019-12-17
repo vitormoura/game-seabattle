@@ -1,168 +1,181 @@
-﻿
+﻿/// <reference path="../eventemitter3/umd/eventemitter3.js" />
 
-function prepareGameClient(options) {
+const EVENT_ON_GAMESESSION_FOUND = 'EVENT_ON_GAMESESSION_FOUND';
+const EVENT_ON_OPPONENT_ATTACK = 'EVENT_ON_OPPONENT_ATTACK';
+const EVENT_ON_OPPONENT_FOUND = 'EVENT_ON_OPPONENT_FOUND';
+const EVENT_ON_GAMESTART = 'EVENT_ON_GAMESTART';
+const EVENT_ON_WAITING_FOR_PLAYERS = 'EVENT_ON_WAITING_FOR_PLAYERS';
+const EVENT_ON_WAITING_PLAYERS_CONFIRMATION = 'EVENT_ON_WAITING_PLAYERS_CONFIRMATION';
+const EVENT_ON_PLAYING = 'EVENT_ON_PLAYING';
+const EVENT_ON_FINISHED = 'EVENT_ON_FINISHED';
 
-    var SESSION_STATE_NO_GAME = 0;
-    var SESSION_STATE_WAITING_FOR_PLAYERS = 1;
-    var SESSION_STATE_WAITING_PLAYERS_CONFIRMATION = 2;
-    var SESSION_STATE_PLAYING = 3;
-    var SESSION_STATE_CANCELLED = 4;
-    var SESSION_STATE_FINISHED = 5;
+const GameSessionStates = {
+    NO_GAME: 0,
+    WAITING_FOR_PLAYERS: 1,
+    WAITING_PLAYERS_CONFIRMATION: 2,
+    PLAYING: 3,
+    CANCELLED: 4,
+    FINISHED: 5
+};
 
-    var connection = new signalR.HubConnectionBuilder()
-        .withUrl("/game-sessions")
-        .configureLogging(signalR.LogLevel.Debug)
-        .build();
+class GameClient extends EventEmitter3 {
 
-    var client = {
+    connection = null
+    session = {
+        id: null,
+        state: GameSessionStates.NO_GAME,
+        playerId: null,
+        playerReady: false,
+        currentPlayerId: null,
+        winnerId: null,
+        points: {
+        }
+    }
 
-        session: {
-            id: null,
-            state: SESSION_STATE_NO_GAME,
-            playerId: null,
-            playerReady: false,
-            currentPlayerId: null,
-            points: {
+    constructor() {
+        super();
+
+    }
+
+    isNotInGame() {
+        return this.session.state === GameSessionStates.NO_GAME;
+    }
+
+    isWaitingForPlayers() {
+        return this.session.state === GameSessionStates.WAITING_FOR_PLAYERS;
+    }
+
+    isSettingGameBoard() {
+        return this.session.state === GameSessionStates.WAITING_PLAYERS_CONFIRMATION;
+    }
+
+    isInGameplay() {
+        return this.session.state === GameSessionStates.PLAYING;
+    }
+
+    isGameover() {
+        return this.session.state === GameSessionStates.FINISHED;
+    }
+
+    isWinner() {
+        return this.isGameover() && this.session.winnerId === this.session.playerId;
+    }
+
+    isWaitingYourPlay() {
+        return this.session.currentPlayerId === this.session.playerId;
+    }
+
+    ////////////////////////////////////////////
+
+    build() {
+        this.connection = new signalR.HubConnectionBuilder()
+            .withUrl("/game-sessions")
+            .configureLogging(signalR.LogLevel.Debug)
+            .build();
+
+        this.connection.on('GameSessionFound', (gsInfo) => {
+            console.log('OnGameSessionFound', gsInfo);
+
+            this.session.id = gsInfo.id;
+            this.session.state = gsInfo.state;
+            this.session.playerId = gsInfo.playerID;
+
+            this.emit(EVENT_ON_GAMESESSION_FOUND, gsInfo);
+        });
+
+        this.connection.on('OpponentAttack', (attackInfo) => {
+            this.emit(EVENT_ON_OPPONENT_ATTACK, attackInfo);
+        });
+
+        this.connection.on('GameSessionStateChanged', (gpState) => {
+            console.log('OnGameSessionStateChanged', gpState);
+
+            //Opponent found
+            if (this.session.state === GameSessionStates.WAITING_FOR_PLAYERS && gpState.state === GameSessionStates.EVENT_ON_WAITING_FOR_PLAYERS) {
+                this.emit(EVENT_ON_OPPONENT_FOUND);
             }
-        },
 
-        findGameSession: function () {
-            return connection.start().then(function (res) {
-                return connection.invoke('FindNewGameSession');
-            });
-        },
-
-        positionShip: function (shipId, pos) {
-
-            if (!client.isSettingGameBoard()) {
-                return Promise.reject('invalid game state');
+            //Both players confirmed and the game started
+            if (this.session.state === GameSessionStates.WAITING_PLAYERS_CONFIRMATION && gpState.state === GameSessionStates.PLAYING) {
+                this.emit(EVENT_ON_GAMESTART);
             }
 
-            return connection.invoke('PositionShip', {
-                sessionID: client.getSessionId(),
-                shipID: shipId,
-                position: pos
-            });
-        },
+            this.session.state = gpState.state;
+            this.session.currentPlayerId = gpState.currentPlayerTurn;
 
-        setReady: function () {
-            return connection.invoke('SetPlayerIsReady', {
-                sessionID: client.getSessionId()
-            });
-        },
+            switch (gpState.state) {
 
-        shootOpponent: function (pos) {
+                case GameSessionStates.WAITING_FOR_PLAYERS:
+                    this.emit(EVENT_ON_WAITING_FOR_PLAYERS, gpState);
+                    break;
 
-            if (!client.isInGameplay()) {
-                return Promise.reject('invalid game state');
+                case GameSessionStates.WAITING_PLAYERS_CONFIRMATION:
+                    this.emit(EVENT_ON_WAITING_PLAYERS_CONFIRMATION, gpState);
+                    break;
+
+                case GameSessionStates.PLAYING:
+                    this.session.points = gpState.playerScore;
+
+                    this.emit(EVENT_ON_PLAYING, gpState);
+                    break;
             }
-                        
-            return connection.invoke('ShootOpponent', {
-                sessionID: client.getSessionId(),
-                position: pos
-            });
-        },
+        });
 
-        getSessionId: function () {
-            return client.session.id;
-        },
+        this.connection.on('GameOver', state => {
+            this.session.state = GameSessionStates.FINISHED;
+            this.emit(EVENT_ON_FINISHED, state);
+        });
+    }
 
-        getPlayerId: function () {
-            return client.session.playerId;
-        },
+    findGameSession() {
 
-        getCurrentScore: function () {
-            return client.session.points[client.session.playerId] || 0;
-        },
+        return this.connection.start().then((res) => {
+            return this.connection.invoke('FindNewGameSession');
+        });
+    }
 
-        ///////////////////////
+    positionShip(shipId, pos) {
 
-        isNotInGame: function () {
-            return client.session.state === SESSION_STATE_NO_GAME;
-        },
-
-        isWaitingForPlayers: function () {
-            return client.session.state === SESSION_STATE_WAITING_FOR_PLAYERS;
-        },
-
-        isSettingGameBoard: function () {
-            return client.session.state === SESSION_STATE_WAITING_PLAYERS_CONFIRMATION;
-        },
-
-        isInGameplay: function () {
-            return client.session.state === SESSION_STATE_PLAYING;
-        },
-                
-        isWaitingYourPlay: function () {
-            return client.session.currentPlayerId === client.session.playerId;
-        }
-    };
-
-    connection.on('GameSessionFound', function (gsInfo) {
-        console.log('OnGameSessionFound', gsInfo);
-
-        client.session.id = gsInfo.id;
-        client.session.state = gsInfo.state;
-        client.session.playerId = gsInfo.playerID;
-
-        if (options.onGameSessionFound) {
-            options.onGameSessionFound(gsInfo);
-        }
-    });
-
-    connection.on('OpponentAttack', function (attackInfo) {
-        console.log('OnOpponentAttack', attackInfo);
-
-        if (options.onOpponentAttack) {
-            options.onOpponentAttack(attackInfo);
-        }
-    });
-
-    connection.on('GameSessionStateChanged', function (gpState) {
-        console.log('OnGameSessionStateChanged', gpState);
-
-        //Opponent found
-        if (client.session.state === SESSION_STATE_WAITING_FOR_PLAYERS &&
-            gpState.state === SESSION_STATE_WAITING_PLAYERS_CONFIRMATION) {
-
-            if (options.onOpponentFound) {
-                options.onOpponentFound();
-            }
+        if (!this.isSettingGameBoard()) {
+            return Promise.reject('invalid game state');
         }
 
-        //Both players confirmed and the game started
-        if (client.session.state === SESSION_STATE_WAITING_PLAYERS_CONFIRMATION &&
-            gpState.state === SESSION_STATE_PLAYING) {
+        return this.connection.invoke('PositionShip', {
+            sessionID: this.getSessionId(),
+            shipID: shipId,
+            position: pos
+        });
+    }
 
-            if (options.onGameStart) {
-                options.onGameStart();
-            }
+    setReady() {
+        return this.connection.invoke('SetPlayerIsReady', {
+            sessionID: this.getSessionId()
+        });
+    }
+
+    shootOpponent(pos) {
+
+        if (!this.isInGameplay()) {
+            return Promise.reject('invalid game state');
         }
 
-        client.session.state = gpState.state;
-        client.session.currentPlayerId = gpState.currentPlayerTurn;
+        return this.connection.invoke('ShootOpponent', {
+            sessionID: this.getSessionId(),
+            position: pos
+        });
+    }
 
-        switch (gpState.state) {
+    getSessionId() {
+        return this.session.id;
+    }
 
-            case SESSION_STATE_WAITING_FOR_PLAYERS:
-                options.onWaitingForPlayers && options.onWaitingForPlayers(gpState);
-                break;
+    getPlayerId() {
+        return this.session.playerId;
+    }
 
-            case SESSION_STATE_WAITING_PLAYERS_CONFIRMATION:
-                options.onWaitingPlayerConfirmation && options.onWaitingPlayerConfirmation(gpState);
-                break;
+    getCurrentScore() {
+        return this.session.points[this.session.playerId] || 0;
+    }
 
-            case SESSION_STATE_PLAYING:
-                client.session.points = gpState.playerScore;
-
-                options.onPlaying && options.onPlaying(gpState);
-                break;
-
-            case SESSION_STATE_FINISHED:
-                options.onFinished && options.onFinished(gpState);
-                break;
-        }
-    });
-
-    return client;
+       
 }

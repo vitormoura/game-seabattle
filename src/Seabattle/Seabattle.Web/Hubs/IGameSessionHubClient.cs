@@ -16,6 +16,8 @@ namespace Seabattle.Web.Hubs
 
         Task OpponentAttack(ShipAttackInfo attack);
 
-        Task GameSessionStateChanged(GameplayStateResponse resp);        
+        Task GameSessionStateChanged(GameplayStateResponse resp);
+
+        Task GameOver(GameplayStateResponse resp);
     }
 }

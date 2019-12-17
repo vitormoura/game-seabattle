@@ -93,7 +93,6 @@ Vue.component('my-game-board', {
 
     template: `
         <table class="tb-board">
-            <caption>{{width}} : {{ships.length}}</caption>
             <tr>
                 <td>&nbsp;</td>
                 <td v-for="(c, index) in cells">

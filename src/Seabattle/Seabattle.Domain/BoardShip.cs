@@ -5,13 +5,10 @@ using System.Text;
 
 namespace Seabattle.Domain
 {
-    /// <summary>
-    /// Board cell
-    /// </summary>
-    public class BoardCell
+    public class BoardShip
     {
-        public Coordinates Position { get; set; }
-
         public Ship Ship { get; set; }
+        
+        public ICollection<Coordinates> Cells { get; set; }
     }
 }

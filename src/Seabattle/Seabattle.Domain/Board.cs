@@ -11,9 +11,9 @@ namespace Seabattle.Domain
     /// </summary>
     public class Board
     {
-        private readonly Dictionary<string, Ship> fleet;
+        private readonly Dictionary<string, BoardShip> fleet;
 
-        private BoardCell[,] grid;
+        private Ship[,] grid;
 
         /// <summary>
         /// Board width
@@ -30,21 +30,10 @@ namespace Seabattle.Domain
         {
             get
             {
-                return fleet.Values;
+                return fleet.Values.Select(x => x.Ship);
             }
         }
-
-        public IEnumerator<BoardCell> GetCells()
-        {
-            for (int y = 0; y < Width; y++)
-            {
-                for (int x = 0; x < Width; x++)
-                {
-                    yield return grid[y, x];
-                }
-            }
-        }
-
+                
         /// <summary>
         /// Create a new instance of Board with a specified width
         /// </summary>
@@ -56,7 +45,7 @@ namespace Seabattle.Domain
                 throw new ArgumentException($"invalid grid width: {width}");
             }
 
-            fleet = new Dictionary<string, Ship>();
+            fleet = new Dictionary<string, BoardShip>();
 
             PrepareGrid(width);
         }
@@ -123,20 +112,33 @@ namespace Seabattle.Domain
 
             Remove(ship);
 
+            var boardShip = new BoardShip
+            {
+                Cells = new List<Coordinates>(),
+                Ship = ship
+            };
+            
             for (int i = 0; i < ship.Size; i++)
             {
+                var cell = new Coordinates { };
+
                 //TODO: Refactor, this code is duplicated in line #128 
                 if (ship.Orientation == EnumShipOrientation.Horizontal)
                 {
-                    grid[pos.Y, pos.X + i].Ship = ship;
+                    cell.X = pos.X + i;
+                    cell.Y = pos.Y;
                 }
                 else
                 {
-                    grid[pos.Y + i, pos.X].Ship = ship;
+                    cell.X = pos.X;
+                    cell.Y = pos.Y + i;
                 }
+
+                grid[cell.Y, cell.X] = ship;
+                boardShip.Cells.Add(cell);
             }
 
-            fleet.Add(ship.ID, ship);
+            fleet.Add(ship.ID, boardShip);
         }
 
         /// <summary>
@@ -151,7 +153,28 @@ namespace Seabattle.Domain
                 throw new ArgumentNullException(nameof(pos));
             }
 
-            return grid[pos.Y, pos.X].Ship;
+            return grid[pos.Y, pos.X];
+        }
+
+        /// <summary>
+        /// Get current ship at position x, y
+        /// </summary>
+        /// <param name="x"></param>
+        /// <param name="y"></param>
+        /// <returns></returns>
+        public Ship Get(int x, int y)
+        {
+            return Get(new Coordinates { X = x, Y = y });
+        }
+
+        /// <summary>
+        /// Try to get a ship member of the board identified by id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        public BoardShip FindShipById(string id)
+        {
+            return fleet[id];
         }
 
         /// <summary>
@@ -174,25 +197,14 @@ namespace Seabattle.Domain
             {
                 for (int x = 0; x < Width; x++)
                 {
-                    if (grid[y, x].Ship == ship)
+                    if (grid[y, x] == ship)
                     {
-                        grid[y, x].Ship = null;
+                        grid[y, x] = null;
                     }
                 }
             }
 
             fleet.Remove(ship.ID);
-        }
-
-        /// <summary>
-        /// Get current ship at position x, y
-        /// </summary>
-        /// <param name="x"></param>
-        /// <param name="y"></param>
-        /// <returns></returns>
-        public Ship Get(int x, int y)
-        {
-            return Get(new Coordinates { X = x, Y = y });
         }
 
         /// <summary>
@@ -213,15 +225,15 @@ namespace Seabattle.Domain
                 {
                     var cell = grid[y, x];
 
-                    if (cell.Ship != null)
+                    if (cell != null)
                     {
-                        if (!ids.ContainsKey(cell.Ship.ID))
+                        if (!ids.ContainsKey(cell.ID))
                         {
-                            ids.Add(cell.Ship.ID, currentId);
+                            ids.Add(cell.ID, currentId);
                             currentId = (char)(currentId + 1);
                         }
 
-                        sb.Append(ids[cell.Ship.ID]);
+                        sb.Append(ids[cell.ID]);
                     }
                     else
                         sb.Append("-");
@@ -277,16 +289,13 @@ namespace Seabattle.Domain
 
         private void PrepareGrid(int width)
         {
-            grid = new BoardCell[width, width];
+            grid = new Ship[width, width];
 
             for (int i = 0; i < width; i++)
             {
                 for (int j = 0; j < width; j++)
                 {
-                    grid[j, i] = new BoardCell
-                    {
-                        Position = new Coordinates { X = j, Y = i }
-                    };
+                    grid[j, i] = null;
                 }
             }
         }

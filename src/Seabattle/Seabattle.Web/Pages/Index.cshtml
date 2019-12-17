@@ -6,6 +6,7 @@
 }
 
 @section scripts {
+    <script src="~/js/eventemitter3/umd/eventemitter3.js"></script>
     <script src="~/js/app/GameClient.js"></script>
     <script src="~/js/app/GameBoardComponent.js"></script>
     <script src="~/js/app/PageGame.js"></script>
@@ -17,7 +18,7 @@
         <h1>BATTLE</h1>
     </header>
 
-    <div v-if="isInGameSession" class="pure-g">
+    <div v-if="isGameSessionFound" class="pure-g">
 
         <div v-if="isFindingOpponent" class="pure-u-1-1">
             <p>Finding opponent...</p>
@@ -28,15 +29,14 @@
             <div class="pure-u-1-2">
 
                 <h5>YOUR BOARD ({{score}} pts)</h5>
-                
+
                 <my-game-board v-bind:public="true"
                                v-bind:width="mainBoard.size"
                                v-bind:ships="mainBoard.ships"
                                v-bind:shots="mainBoard.shots"
                                v-on:cell-clicked="setShipPosition($event)">
                 </my-game-board>
-
-
+                
                 <div v-if="isPreparingBoard">
                     <ul class="ls-ships">
                         <li v-for="s in mainBoard.availableShips" v-on:click="selectShipForPosition(s)" v-bind:class="{ 'selected' : s ===  mainBoard.selectedShip }">

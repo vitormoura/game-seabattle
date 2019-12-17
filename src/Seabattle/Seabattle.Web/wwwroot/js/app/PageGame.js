@@ -6,11 +6,15 @@ var DEFAULT_MAX_HEALTH = 100;
 
 //////////////////////////////////////////
 
-var page = new Vue({
+new Vue({
     el: '#cnt-main',
+
+    /**
+     *  
+     **/
     data: {
         gameClient: null,
-        
+
         mainBoard: {
             size: 0,
             availableShips: [],
@@ -27,9 +31,10 @@ var page = new Vue({
     },
     computed: {
 
-        isInGameSession() {
-            return this.gameClient && !this.gameClient.isNotInGame();
+        isGameSessionFound() {
+            return this.gameClient && this.gameClient.getSessionId();
         },
+
         isFindingOpponent() {
             return this.gameClient.isWaitingForPlayers();
         },
@@ -45,18 +50,78 @@ var page = new Vue({
         isMyTurn() {
             return this.gameClient.isWaitingYourPlay();
         },
-
+        isWinner() {
+            return this.gameClient.isWinner();
+        },
+        isGameOver() {
+            return this.gameClient && this.gameClient.isGameover();
+        },
         score() {
             return this.gameClient.getCurrentScore();
         }
-       
+
     },
     created: function () {
 
     },
     methods: {
 
-        selectShipForPosition: function (ship) {
+        tryFindNewGameSession() {
+
+            let client = new GameClient();
+
+            client.build();
+
+            client.on(EVENT_ON_GAMESESSION_FOUND, (gsInfo) => {
+
+                this.mainBoard.size = gsInfo.boardSize;
+                this.mainBoard.selectedShipId = null;
+                this.mainBoard.positioned = [];
+                this.mainBoard.availableShips = gsInfo.playerFleet.map(function (s) {
+                    return Object.assign({
+                        X: 0,
+                        Y: 0,
+                        health: DEFAULT_MAX_HEALTH,
+                        destroyed: false
+                    }, s);
+                });
+
+                this.opponentBoard = {
+                    size: gsInfo.boardSize,
+                    positioned: [],
+                    ships: [],
+                    shots: []
+                };
+            });
+
+            client.on(EVENT_ON_OPPONENT_ATTACK, (attackInfo) => {
+
+                this.mainBoard.shots.push({
+                    X: attackInfo.position.x,
+                    Y: attackInfo.position.y
+                });
+
+                if (attackInfo.success) {
+                    var ship = this.mainBoard.availableShips.find(function (s) {
+                        return s.id === attackInfo.target.ID;
+                    });
+
+                    if (ship) {
+                        ship.destroyed = true;
+                    }
+                }
+            });
+
+            client.on(EVENT_ON_FINISHED, state => {
+
+            });
+
+            client.findGameSession();
+
+            this.gameClient = client;
+        },
+
+        selectShipForPosition(ship) {
 
             if (this.mainBoard.positioning) {
                 return;
@@ -68,12 +133,12 @@ var page = new Vue({
 
             this.mainBoard.selectedShip = ship;
         },
-                       
-        setShipPosition: function (cell) {
+
+        setShipPosition(cell) {
             if (!this.isPreparingBoard) {
                 return;
             }
-            
+
             var board = this.mainBoard;
 
             if (!board.selectedShip || board.positioning) {
@@ -83,7 +148,7 @@ var page = new Vue({
             board.positioning = true;
 
             this.gameClient.positionShip(board.selectedShip.id, cell).then(function (posState) {
-                
+
                 var shipId = posState.shipID;
                 var pos = posState.position;
 
@@ -101,100 +166,28 @@ var page = new Vue({
             });
         },
 
-        playerIsReady: function () {
+        playerIsReady() {
             if (!this.isAllShipsPositioned) {
                 return;
             }
-                        
+
             this.gameClient.setReady();
         },
 
-        shootOpponent: function (cell) {
-            var self = this;
+        shootOpponent(cell) {
 
             if (this.isPlaying && this.isMyTurn) {
-                self.gameClient.shootOpponent(cell).then(function () {
-                    self.opponentBoard.shots.push(cell);
+                this.gameClient.shootOpponent(cell).then((attackInfo) => {
+                    
+                    if (attackInfo.success) {
+                        attackInfo.target.cells.forEach(c => {
+                            this.opponentBoard.shots.push(cell);
+                        });
+                    } else {
+                        this.opponentBoard.shots.push(cell);
+                    }
                 });
             }
-        },
-
-        tryFindNewGameSession: function () {
-            var self = this;
-
-            self.gameClient = prepareGameClient({
-
-                onGameSessionFound: function (gsInfo) {
-                    console.log(gsInfo);
-
-                    self.mainBoard.size = gsInfo.boardSize;
-                    self.mainBoard.selectedShipId = null;
-                    self.mainBoard.positioned = [];
-                    self.mainBoard.availableShips = gsInfo.playerFleet.map(function (s) {
-                        return Object.assign({
-                            X: 0,
-                            Y: 0,
-                            health: DEFAULT_MAX_HEALTH,
-                            destroyed: false
-                        }, s);
-                    });
-
-                    self.opponentBoard = {
-                        size: gsInfo.boardSize,
-                        positioned: [],
-                        ships: [],
-                        shots: []
-                    };
-                },
-
-                onWaitingForPlayers: function () {
-
-                },
-
-                onOpponentFound: function () {
-
-                },
-
-                onOpponentAttack: function (attackInfo) {
-                    console.log('page onOpponentAttack', attackInfo);
-
-                    self.mainBoard.shots.push({
-                        X: attackInfo.position.x,
-                        Y: attackInfo.position.y
-                    });
-
-                    if (attackInfo.targetID) {
-                        var ship = self.mainBoard.availableShips.find(function (s) {
-                            return s.id === attackInfo.targetID;
-                        });
-
-                        if (ship) {
-                            ship.destroyed = true;
-                        }
-                    }
-                },
-
-                onWaitingPlayerConfirmation: function () {
-
-                },
-
-                onGameStart: function () {
-
-                },
-
-                onGameOver: function () {
-
-                },
-
-                onPlaying: function () {
-
-                },
-
-                onFinished: function () {
-
-                }
-            });
-            self.gameClient.findGameSession();
         }
     }
 });

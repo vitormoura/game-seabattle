@@ -15,7 +15,7 @@
     },
     {
       "provider": "unpkg",
-      "library": "vue@2.6.10/",
+      "library": "vue@2.6.10",
       "destination": "wwwroot/js/vue/",
       "files": [
         "dist/vue.js",
@@ -29,6 +29,16 @@
       "files": [
         "build/pure-min.css",
         "build/pure.css"
+      ]
+    },
+    {
+      "provider": "unpkg",
+      "library": "eventemitter3@4.0.0",
+      "destination": "wwwroot/js/eventemitter3/",
+      "files": [
+        "umd/eventemitter3.js",
+        "umd/eventemitter3.min.js",
+        "umd/eventemitter3.min.js.map"
       ]
     }
   ]

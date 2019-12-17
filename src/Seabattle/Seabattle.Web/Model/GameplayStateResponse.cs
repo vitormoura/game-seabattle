@@ -10,6 +10,8 @@ namespace Seabattle.Web.Model
     {
         public string CurrentPlayerTurn { get; set; }
 
+        public string Winner { get; set; }
+
         public EnumGameSessionState State { get; set; }
 
         public Dictionary<string,int> PlayerScore { get; set; }

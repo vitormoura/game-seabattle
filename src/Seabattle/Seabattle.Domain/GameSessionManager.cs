@@ -30,7 +30,7 @@ namespace Seabattle.Domain
             {
                 var session = null as GameSession;
                 var available = sessions.Where(x => x.State == EnumGameSessionState.WaitingForPlayers).ToList();
-                
+
                 if (available.Count > 0)
                 {
                     session = available.FirstOrDefault();
@@ -48,11 +48,36 @@ namespace Seabattle.Domain
                 return Task.FromResult(session);
             }
         }
-                
+
+        /// <summary>
+        /// Remove GameSession identified by id
+        /// </summary>
+        /// <param name="sessionId"></param>
+        /// <returns></returns>
+        public Task Remove(string sessionId)
+        {
+            if(string.IsNullOrEmpty(sessionId))
+            {
+                return Task.CompletedTask;
+            }
+
+            lock (sessions)
+            {
+                sessions.RemoveAll(x => x.ID == sessionId);
+            }
+
+            return Task.CompletedTask;
+        }
+
+        /// <summary>
+        /// Get GameSession identified by id
+        /// </summary>
+        /// <param name="sessionId"></param>
+        /// <returns></returns>
         public Task<GameSession> Get(string sessionId)
         {
             var session = sessions.FirstOrDefault(x => x.ID == sessionId);
-                        
+
             return Task.FromResult(session);
         }
     }
