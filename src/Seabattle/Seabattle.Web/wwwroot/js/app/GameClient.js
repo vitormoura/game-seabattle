@@ -62,7 +62,7 @@ class GameClient extends EventEmitter3 {
     }
 
     isWaitingYourPlay() {
-        return this.session.currentPlayerId === this.session.playerId;
+        return this.isInGameplay() && this.session.currentPlayerId === this.session.playerId;
     }
 
     ////////////////////////////////////////////

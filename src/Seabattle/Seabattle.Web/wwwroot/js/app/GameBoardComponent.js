@@ -27,10 +27,6 @@ function prepareGridCells(width) {
 
 Vue.component('my-game-board', {
     props: {
-        public: {
-            required: true,
-            type: Boolean
-        },
         width: {
             required: true,
             type: Number

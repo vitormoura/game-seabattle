@@ -18,13 +18,13 @@ namespace Seabattle.Domain
                 Board = new Board(boardSize),
                 Fleet = new List<Ship>
                 {
-                    //new AircraftCarrier(GenerateShipID(), EnumShipOrientation.Vertical),
-                    //new Battleship(GenerateShipID(), EnumShipOrientation.Vertical),
+                    new AircraftCarrier(GenerateShipID(), EnumShipOrientation.Vertical),
+                    new Battleship(GenerateShipID(), EnumShipOrientation.Vertical),
                     //new Cruiser(GenerateShipID(), EnumShipOrientation.Vertical),
                     //new Destroyer(GenerateShipID(), EnumShipOrientation.Horizontal),
                     //new Destroyer(GenerateShipID(), EnumShipOrientation.Horizontal),
-                    new Submarine(GenerateShipID()),
-                    new Submarine(GenerateShipID())
+                    //new Submarine(GenerateShipID()),
+                    //new Submarine(GenerateShipID())
                 }
             };
 

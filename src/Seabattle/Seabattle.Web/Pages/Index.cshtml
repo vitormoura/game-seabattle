@@ -29,17 +29,16 @@
             <div class="pure-u-1-2">
 
                 <h5>YOUR BOARD ({{score}} pts)</h5>
-
-                <my-game-board v-bind:public="true"
-                               v-bind:width="mainBoard.size"
+                
+                <my-game-board v-bind:width="mainBoard.size"
                                v-bind:ships="mainBoard.ships"
                                v-bind:shots="mainBoard.shots"
                                v-on:cell-clicked="setShipPosition($event)">
                 </my-game-board>
                 
-                <div v-if="isPreparingBoard">
+                <div>
                     <ul class="ls-ships">
-                        <li v-for="s in mainBoard.availableShips" v-on:click="selectShipForPosition(s)" v-bind:class="{ 'selected' : s ===  mainBoard.selectedShip }">
+                        <li v-for="s in mainBoard.availableShips" v-on:click="selectShipForPosition(s)" v-bind:class="{ 'selected' : s ===  mainBoard.selectedShip, 'destroyed' : s.destroyed }">
                             {{s.type}} <span v-if="s.positioned">({{s.X}},{{s.Y}})</span>
                         </li>
                     </ul>
@@ -56,8 +55,7 @@
                 <h5>OPPONENT's BOARD</h5>
 
                 <div v-bind:class="{ disabled: !isMyTurn }">
-                    <my-game-board v-bind:public="true"
-                                   v-bind:width="opponentBoard.size"
+                    <my-game-board v-bind:width="opponentBoard.size"
                                    v-bind:ships="opponentBoard.ships"
                                    v-bind:shots="opponentBoard.shots"
                                    v-on:cell-clicked="shootOpponent($event)">

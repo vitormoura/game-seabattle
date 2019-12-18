@@ -96,12 +96,10 @@ new Vue({
 
             client.on(EVENT_ON_OPPONENT_ATTACK, (attackInfo) => {
 
-                this.mainBoard.shots.push({
-                    X: attackInfo.position.x,
-                    Y: attackInfo.position.y
-                });
+                this.updateBoardWithAttackInfo(attackInfo, this.mainBoard);
 
                 if (attackInfo.success) {
+
                     var ship = this.mainBoard.availableShips.find(function (s) {
                         return s.id === attackInfo.target.ID;
                     });
@@ -122,6 +120,10 @@ new Vue({
         },
 
         selectShipForPosition(ship) {
+
+            if (!this.isPreparingBoard()) {
+                return;
+            }
 
             if (this.mainBoard.positioning) {
                 return;
@@ -176,18 +178,28 @@ new Vue({
 
         shootOpponent(cell) {
 
-            if (this.isPlaying && this.isMyTurn) {
-                this.gameClient.shootOpponent(cell).then((attackInfo) => {
-                    
-                    if (attackInfo.success) {
-                        attackInfo.target.cells.forEach(c => {
-                            this.opponentBoard.shots.push(cell);
-                        });
-                    } else {
-                        this.opponentBoard.shots.push(cell);
-                    }
-                });
+            if (!this.isMyTurn) {
+                return;
             }
+
+            this.gameClient.shootOpponent(cell).then(attackInfo => {
+                this.updateBoardWithAttackInfo(attackInfo, this.opponentBoard);
+            });
+        },
+
+        updateBoardWithAttackInfo(attackInfo, board) {
+            
+            if (attackInfo.success) {
+                attackInfo.target.cells.forEach(c => {
+                    board.shots.push({ X: c.x, Y: c.y });
+                });
+                return;
+            }
+
+            board.shots.push({
+                X: attackInfo.position.x,
+                Y: attackInfo.position.y
+            });
         }
     }
 });

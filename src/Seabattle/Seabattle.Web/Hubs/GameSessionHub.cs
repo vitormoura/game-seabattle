@@ -93,7 +93,7 @@ namespace Seabattle.Web.Hubs
             }
             else
             {
-                await Clients.Group(gs.ID).GameOver(GetGameplayState(gs));
+                await Clients.Group(gs.ID).GameSessionStateChanged(GetGameplayState(gs));
             }
 
             return result;
