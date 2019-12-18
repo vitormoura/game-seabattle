@@ -14,62 +14,66 @@
 
 <article id="cnt-main">
 
-    <header>
-        <h1>BATTLE</h1>
+    <header class="main-title">
+        <h1>SEABATTLE</h1>
     </header>
+       
+    <div v-if="isGameSessionFound">
 
-    <div v-if="isGameSessionFound" class="pure-g">
-
-        <div v-if="isFindingOpponent" class="pure-u-1-1">
+        <div v-if="isFindingOpponent">
             <p>Finding opponent...</p>
         </div>
 
         <div v-else>
 
-            <div class="pure-u-1-2">
-
-                <h5>YOUR BOARD ({{score}} pts)</h5>
-                
-                <my-game-board v-bind:width="mainBoard.size"
-                               v-bind:ships="mainBoard.ships"
-                               v-bind:shots="mainBoard.shots"
-                               v-on:cell-clicked="setShipPosition($event)">
-                </my-game-board>
-                
-                <div>
-                    <ul class="ls-ships">
+            <article class="cnt-boards">
+                <section class="player">
+                    <h1>YOU</h1>
+                    <p>{{score}} point(s)</p>
+                </section>
+                <section class="board">
+                    <my-game-board v-bind:width="mainBoard.size"
+                                   v-bind:ships="mainBoard.ships"
+                                   v-bind:shots="mainBoard.shots"
+                                   v-on:cell-clicked="setShipPosition($event)">
+                    </my-game-board>
+                </section>
+                <section class="fleet">
+                    <ol class="ls-ships">
                         <li v-for="s in mainBoard.availableShips" v-on:click="selectShipForPosition(s)" v-bind:class="{ 'selected' : s ===  mainBoard.selectedShip, 'destroyed' : s.destroyed }">
-                            {{s.type}} <span v-if="s.positioned">({{s.X}},{{s.Y}})</span>
+                            {{s.type}} <span v-if="s.positioned">*</span>
                         </li>
-                    </ul>
+                    </ol>
 
-                    <p>
-                        <button v-if="isAllShipsPositioned" v-on:click="playerIsReady()">READY!</button>
+                    <p class="commands">
+                        <button v-if="isAllShipsPositioned" v-on:click="playerIsReady()" class="btn-padrao">READY</button>
                     </p>
-                </div>
+                </section>
+            </article>
 
-            </div>
-
-            <div class="pure-u-1-2" v-if="isPlaying">
-
-                <h5>OPPONENT's BOARD</h5>
-
-                <div v-bind:class="{ disabled: !isMyTurn }">
+            <article class="cnt-boards border-top" v-if="isPlaying">
+                <section class="player">
+                    <h1>VS</h1>
+                    <p>&nbsp;</p>
+                </section>
+                <section v-bind:class="{ board: true, disabled: !isMyTurn }">
                     <my-game-board v-bind:width="opponentBoard.size"
                                    v-bind:ships="opponentBoard.ships"
                                    v-bind:shots="opponentBoard.shots"
                                    v-on:cell-clicked="shootOpponent($event)">
                     </my-game-board>
-                </div>
-            </div>
+                </section>
+                <section class="fleet">
+                    <ul class="ls-ships"></ul>
+                </section>
+            </article>
 
         </div>
 
     </div>
 
     <div v-else>
-        <p>Let's play?</p>
-        <button v-on:click="tryFindNewGameSession()">NEW GAME</button>
+        <button v-on:click="tryFindNewGameSession()" class="btn-padrao">NEW GAME</button>
     </div>
 
 

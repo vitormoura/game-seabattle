@@ -1,35 +1,104 @@
 ﻿body {
+    background-color: #254a85;
+    color: #FFF;
 }
 
-.cnt-player-info {
+.main-title h1 {
+    font-size: 3rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     text-align: center;
 }
 
-.tb-board td {
-    border: 1px solid #CCC;
-    padding: 2px;
-    width: 30px;
-    text-align: center;
-    background-color: lightcyan;
+/*************************/
+
+.cnt-boards {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 }
 
-    .tb-board td.visible {
-        background-color: gray;
+    .cnt-boards > section {
+        /*border: 1px solid #F00;*/
+        width: 30%;
     }
 
-    .tb-board td.active {
+    .cnt-boards .player {
+        flex-grow: 1;
+        padding: 1rem;
+        text-align: center;
     }
 
-    .tb-board td.shotted {
-        background-color: orange;
+        .cnt-boards .player h1 {
+            font-size: 3rem;
+        }
+
+    .cnt-boards.border-top {
+        border-top: 3px solid #4167a3;
     }
 
-    .tb-board td.hitted {
-        background-color: red;
+    .cnt-boards .board {
+        flex-grow: 1;
+        display: flex;
+        justify-content: center;
     }
+
+    .cnt-boards .fleet {
+        flex-grow: 1;
+        
+    }
+
+        .cnt-boards .fleet h4 {
+            font-size: 2rem;
+        }
+
+        .cnt-boards .fleet .commands {
+            padding: 1rem;
+            display:flex;
+            justify-items:center;
+        }
+
+        /*************************/
+        .cnt-player-info {
+            text-align: center;
+        }
+
+.tb-board {
+    width: 100%;
+}
+
+    .tb-board td {
+        border: 1px solid #305691;
+        height: 2rem;
+        width: 2rem;
+        text-align: center;
+        background-color: #0f3b80;
+    }
+
+        .tb-board td.visible {
+            background-color: #AAA;
+            border-bottom: 1px solid #AAA;
+        }
+
+        .tb-board td:hover {
+            background-color: aqua;
+        }
+
+        .tb-board td.active {
+        }
+
+        .tb-board td.shotted {
+            background-color: orange;
+            border: 1px solid orange;
+        }
+
+        .tb-board td.hitted {
+            background-color: red;
+            border: 1px solid red;
+        }
 
 .disabled .tb-board td {
-    background-color: #CCC;
+    background-color: #405578;
+    border: 1px solid #405578;
 }
 
 .ls-ships {
@@ -43,3 +112,40 @@
 .cnt-board {
     text-align: center;
 }
+
+.btn-padrao {
+    background: #3D94F6;
+    background-image: -webkit-linear-gradient(top, #3D94F6, #1E62D0);
+    background-image: -moz-linear-gradient(top, #3D94F6, #1E62D0);
+    background-image: -ms-linear-gradient(top, #3D94F6, #1E62D0);
+    background-image: -o-linear-gradient(top, #3D94F6, #1E62D0);
+    background-image: linear-gradient(to bottom, #3D94F6, #1E62D0);
+    -webkit-border-radius: 20px;
+    -moz-border-radius: 20px;
+    border-radius: 20px;
+    color: #FFFFFF;
+    font-family: Arial;
+    padding: 20px;
+    box-shadow: 1px 1px 20px 0px #000000;
+    -webkit-box-shadow: 1px 1px 20px 0px #000000;
+    -moz-box-shadow: 1px 1px 20px 0px #000000;
+    text-shadow: 1px 1px 20px #000000;
+    border: solid #337FED 1px;
+    text-decoration: none;
+    display: inline-block;
+    cursor: pointer;
+}
+
+    .btn-padrao:hover {
+        border: solid #337FED 1px;
+        background: #3D94F6;
+        background-image: -webkit-linear-gradient(top, #3D94F6, #3D94F6);
+        background-image: -moz-linear-gradient(top, #3D94F6, #3D94F6);
+        background-image: -ms-linear-gradient(top, #3D94F6, #3D94F6);
+        background-image: -o-linear-gradient(top, #3D94F6, #3D94F6);
+        background-image: linear-gradient(to bottom, #3D94F6, #3D94F6);
+        -webkit-border-radius: 20px;
+        -moz-border-radius: 20px;
+        border-radius: 20px;
+        text-decoration: none;
+    }

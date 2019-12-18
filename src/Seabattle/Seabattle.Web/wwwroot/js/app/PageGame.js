@@ -121,7 +121,7 @@ new Vue({
 
         selectShipForPosition(ship) {
 
-            if (!this.isPreparingBoard()) {
+            if (!this.isPreparingBoard) {
                 return;
             }
 

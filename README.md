@@ -1,2 +1,5 @@
 # game-seabattle
-Sea battle clone using SignalR
+
+Sea battle clone to experiment SignalR
+
+![alt text](screenshot.png)
