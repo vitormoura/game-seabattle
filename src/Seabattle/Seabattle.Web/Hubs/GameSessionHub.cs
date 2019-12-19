@@ -74,25 +74,25 @@ namespace Seabattle.Web.Hubs
             var opponent = gs.GetPlayerOpponent(playerId);
 
             var target = gs.Shoot(playerId, req.Position);
-
+            var gameplayState = GetGameplayState(gs);
             var result = new ShipAttackInfo
             {
                 Position = req.Position,
                 Success = target != null,
                 Target = target
             };
+            
 
             await Clients.Client(opponent.ID).OpponentAttack(result);
                         
             if (gs.State == EnumGameSessionState.Finished)
             {
                 await SessionManager.Remove(gs.ID);
-
-                await Clients.Group(gs.ID).GameOver(GetGameplayState(gs));
+                await Clients.Group(gs.ID).GameOver(gameplayState);
             }
             else
             {
-                await Clients.Group(gs.ID).GameSessionStateChanged(GetGameplayState(gs));
+                await Clients.Group(gs.ID).GameSessionStateChanged(gameplayState);
             }
 
             return result;
