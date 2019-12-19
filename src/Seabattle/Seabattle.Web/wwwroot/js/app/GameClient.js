@@ -64,6 +64,18 @@ class GameClient extends EventEmitter3 {
     isWaitingYourPlay() {
         return this.isInGameplay() && this.session.currentPlayerId === this.session.playerId;
     }
+    
+    getSessionId() {
+        return this.session.id;
+    }
+
+    getPlayerId() {
+        return this.session.playerId;
+    }
+
+    getCurrentScore() {
+        return this.session.points[this.session.playerId] || 0;
+    }
 
     ////////////////////////////////////////////
 
@@ -123,6 +135,8 @@ class GameClient extends EventEmitter3 {
 
         this.connection.on('GameOver', state => {
             this.session.state = GameSessionStates.FINISHED;
+            this.session.winnerId = state.winner;
+
             this.emit(EVENT_ON_FINISHED, state);
         });
     }
@@ -164,18 +178,4 @@ class GameClient extends EventEmitter3 {
             position: pos
         });
     }
-
-    getSessionId() {
-        return this.session.id;
-    }
-
-    getPlayerId() {
-        return this.session.playerId;
-    }
-
-    getCurrentScore() {
-        return this.session.points[this.session.playerId] || 0;
-    }
-
-       
 }

@@ -25,6 +25,8 @@ function prepareGridCells(width) {
     });
 }
 
+//////////////////////////////////////////////
+
 Vue.component('my-game-board', {
     props: {
         width: {

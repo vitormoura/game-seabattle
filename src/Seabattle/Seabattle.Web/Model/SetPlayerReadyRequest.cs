@@ -8,6 +8,7 @@ namespace Seabattle.Web.Model
     public class SetPlayerReadyRequest
     {
         public string SessionID { get; set; }
+
         public string PlayerID { get; set; }
     }
 }

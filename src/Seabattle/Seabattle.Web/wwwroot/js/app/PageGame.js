@@ -34,7 +34,6 @@ new Vue({
         isGameSessionFound() {
             return this.gameClient && this.gameClient.getSessionId();
         },
-
         isFindingOpponent() {
             return this.gameClient.isWaitingForPlayers();
         },
@@ -62,7 +61,6 @@ new Vue({
 
     },
     created: function () {
-
     },
     methods: {
 

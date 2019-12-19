@@ -3,7 +3,6 @@ using Seabattle.Domain;
 using Seabattle.Web.Model;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Seabattle.Web.Hubs

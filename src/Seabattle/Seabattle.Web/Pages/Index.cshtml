@@ -24,6 +24,11 @@
             <p>Finding opponent...</p>
         </div>
 
+        <div v-else-if="isGameOver">
+            <h2>GAME OVER</h2>
+            <p>{{isWinner ? 'YOU WIN' : 'YOU LOSE'}}</p>
+        </div>
+
         <div v-else>
 
             <article class="cnt-boards">

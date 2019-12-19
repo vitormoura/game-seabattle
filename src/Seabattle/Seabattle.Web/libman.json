@@ -24,15 +24,6 @@
     },
     {
       "provider": "unpkg",
-      "library": "purecss@1.0.1",
-      "destination": "wwwroot/css/purecss/",
-      "files": [
-        "build/pure-min.css",
-        "build/pure.css"
-      ]
-    },
-    {
-      "provider": "unpkg",
       "library": "eventemitter3@4.0.0",
       "destination": "wwwroot/js/eventemitter3/",
       "files": [
