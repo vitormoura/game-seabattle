@@ -20,11 +20,11 @@ namespace Seabattle.Domain
                 {
                     new AircraftCarrier(GenerateShipID(), EnumShipOrientation.Vertical),
                     new Battleship(GenerateShipID(), EnumShipOrientation.Vertical),
-                    //new Cruiser(GenerateShipID(), EnumShipOrientation.Vertical),
-                    //new Destroyer(GenerateShipID(), EnumShipOrientation.Horizontal),
-                    //new Destroyer(GenerateShipID(), EnumShipOrientation.Horizontal),
-                    //new Submarine(GenerateShipID()),
-                    //new Submarine(GenerateShipID())
+                    new Cruiser(GenerateShipID(), EnumShipOrientation.Vertical),
+                    new Destroyer(GenerateShipID(), EnumShipOrientation.Horizontal),
+                    new Destroyer(GenerateShipID(), EnumShipOrientation.Horizontal),
+                    new Submarine(GenerateShipID()),
+                    new Submarine(GenerateShipID())
                 }
             };
 
